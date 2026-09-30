@@ -301,7 +301,7 @@ function App() {
                   크게 보기 <ArrowUpRight size={13} />
                 </button>
               </div>
-              <Dashboard />
+              <Dashboard title="프로젝트 운영현황" />
               <div className="preview-caption">
                 <span>
                   <Blocks size={13} /> 원하는 구성으로, 필요한 데이터만
