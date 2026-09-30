@@ -1,0 +1,213 @@
+.workspace {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #0c111b;
+  min-width: 1280px;
+}
+.workspace-toolbar {
+  height: 76px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 24px;
+  border-bottom: 1px solid #303a4d;
+}
+.workspace-project {
+  min-width: 0;
+  max-width: 300px;
+}
+.workspace-project h1 {
+  font-size: 17px;
+  line-height: 1.5;
+  margin: 0;
+  letter-spacing: -0.4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.workspace-project > span {
+  font-size: 11px;
+  color: #a0aec4;
+}
+.workspace-actions {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+.workspace-toolbar .button {
+  font-size: 12px;
+  min-height: 38px;
+  padding-inline: 14px;
+}
+.workspace button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+.workspace-status {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 24px;
+  border-bottom: 1px solid #273246;
+  font-size: 11px;
+  color: #b7c3d8;
+}
+.workspace-status button {
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  color: #c5b5ff;
+}
+.workspace-layout {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr) 280px;
+  flex: 1;
+  min-height: 0;
+}
+.workspace-preview .workspace-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+.workspace-tree,
+.workspace-properties {
+  padding: 24px 18px;
+  overflow: auto;
+  background: #111927;
+}
+.workspace-tree {
+  border-right: 1px solid #273246;
+}
+.workspace-properties {
+  border-left: 1px solid #273246;
+}
+.workspace-tree h2 {
+  font-size: 15px;
+  margin: 0 0 12px;
+}
+.workspace-tree p {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #a9b7cc;
+  margin-bottom: 20px;
+}
+.workspace-tree > button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 7px;
+  padding: 12px;
+  color: #bfcae0;
+  overflow-wrap: anywhere;
+}
+.workspace-tree > button.active {
+  background: #322750;
+  border-color: #8872b8;
+  color: #ece5ff;
+}
+.workspace-canvas {
+  overflow: auto;
+  padding: 28px;
+  min-width: 0;
+  background: #080d16;
+}
+.workspace-canvas > .schema-dashboard {
+  box-shadow: 0 6px 40px #0003;
+  margin: 0 auto;
+}
+.workspace-form fieldset {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  min-width: 0;
+}
+.workspace-form legend {
+  font-size: 15px;
+  padding-bottom: 10px;
+}
+.workspace-form label {
+  display: block;
+  font-size: 12px;
+  margin: 18px 0 8px;
+}
+.workspace-form input {
+  width: 100%;
+  padding: 10px;
+  background: #0d1421;
+  color: #eef2fa;
+  border: 1px solid #3c4a62;
+  border-radius: 7px;
+}
+.workspace-form p,
+.workspace-hint {
+  color: #9eacc4;
+  font-size: 12px;
+  line-height: 1.8;
+  margin: 18px 0;
+}
+.workspace-form .button {
+  width: 100%;
+  font-size: 13px;
+}
+.workspace .form-error {
+  color: #ffb8c4;
+}
+.workspace-hint {
+  padding-top: 18px;
+  border-top: 1px solid #2e3a50;
+}
+.schema-preview {
+  border: 1px solid #414661;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0e1521;
+  position: relative;
+  box-shadow: 0 22px 60px #0005;
+}
+.schema-preview-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 15px;
+  font-size: 10px;
+  color: #acbad1;
+  border-bottom: 1px solid #29344a;
+}
+.schema-preview-controls select {
+  background: #1a2436;
+  border: 1px solid #3e4960;
+  border-radius: 4px;
+  color: #d7dff0;
+  font: inherit;
+  padding: 3px 8px;
+}
+.schema-preview-viewport {
+  position: relative;
+  overflow: hidden;
+  height: 440px;
+}
+.schema-preview-content {
+  width: 1280px;
+  transform-origin: top left;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.template-image .schema-preview {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.template-image {
+  height: 134px;
+}
+.template-image .schema-preview-viewport {
+  min-height: 134px;
+}
+.preview-modal .schema-preview {
+  width: 100%;
+}

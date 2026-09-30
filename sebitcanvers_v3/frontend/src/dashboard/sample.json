@@ -1,0 +1,170 @@
+{
+  "schemaVersion": "0.1",
+  "project": {
+    "id": "sample-analytics",
+    "name": "매출 분석 대시보드",
+    "type": "analytics",
+    "createdAt": "2026-09-30T00:00:00.000Z",
+    "updatedAt": "2026-09-30T00:00:00.000Z"
+  },
+  "status": "generated",
+  "theme": {
+    "primary": "#9373fa",
+    "background": "#0e1521",
+    "surface": "#182333",
+    "text": "#eef1f8",
+    "muted": "#a8b5cb",
+    "border": "#2c394f",
+    "radius": 10
+  },
+  "layout": {
+    "desktopWidth": 1280,
+    "minWidth": 1280,
+    "gridColumns": 12,
+    "gap": 20
+  },
+  "navigation": {
+    "type": "sidebar",
+    "logoText": "Canvers",
+    "items": [
+      { "id": "nav-dashboard", "label": "대시보드", "active": true },
+      { "id": "nav-analysis", "label": "분석", "active": false },
+      { "id": "nav-project", "label": "프로젝트", "active": false }
+    ]
+  },
+  "header": {
+    "title": "매출 현황 대시보드",
+    "description": "데이터로 확인하는 우리 비즈니스의 오늘"
+  },
+  "mainVisual": {
+    "enabled": false,
+    "type": "banner",
+    "title": "우리 팀의 비즈니스 현황",
+    "description": "주요 지표와 진행 상황을 한눈에 확인하세요."
+  },
+  "sections": [
+    {
+      "id": "section-kpi",
+      "title": "주요 지표",
+      "visible": true,
+      "components": [
+        {
+          "id": "kpi-revenue",
+          "type": "kpi",
+          "title": "총 매출",
+          "visible": true,
+          "layout": { "columnSpan": 3 },
+          "value": 128430,
+          "unit": "",
+          "change": 12.5
+        },
+        {
+          "id": "kpi-users",
+          "type": "kpi",
+          "title": "신규 고객",
+          "visible": true,
+          "layout": { "columnSpan": 3 },
+          "value": 892,
+          "unit": "",
+          "change": 8.2
+        },
+        {
+          "id": "kpi-conversion",
+          "type": "kpi",
+          "title": "전환율",
+          "visible": true,
+          "layout": { "columnSpan": 3 },
+          "value": 74.2,
+          "unit": "%",
+          "change": 3.6
+        },
+        {
+          "id": "kpi-projects",
+          "type": "kpi",
+          "title": "진행 프로젝트",
+          "visible": true,
+          "layout": { "columnSpan": 3 },
+          "value": 24,
+          "unit": "",
+          "change": 12.1
+        }
+      ]
+    },
+    {
+      "id": "section-charts",
+      "title": "추이와 유입",
+      "visible": true,
+      "components": [
+        {
+          "id": "chart-revenue",
+          "type": "chart",
+          "title": "매출 추이",
+          "visible": true,
+          "layout": { "columnSpan": 8 },
+          "chartType": "area",
+          "labels": ["01일", "05일", "10일", "15일", "20일", "25일", "30일"],
+          "datasets": [
+            {
+              "name": "매출",
+              "data": [42, 68, 57, 84, 79, 106, 128],
+              "color": "#9373fa"
+            }
+          ]
+        },
+        {
+          "id": "chart-traffic",
+          "type": "chart",
+          "title": "유입 채널",
+          "visible": true,
+          "layout": { "columnSpan": 4 },
+          "chartType": "donut",
+          "labels": ["검색", "직접 방문", "소셜"],
+          "datasets": [
+            { "name": "유입", "data": [62, 24, 14], "color": "#9373fa" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "section-table",
+      "title": "프로젝트",
+      "visible": true,
+      "components": [
+        {
+          "id": "table-projects",
+          "type": "table",
+          "title": "최근 프로젝트",
+          "visible": true,
+          "layout": { "columnSpan": 12 },
+          "columns": [
+            { "key": "name", "label": "프로젝트명" },
+            { "key": "team", "label": "담당 팀" },
+            { "key": "status", "label": "상태" },
+            { "key": "date", "label": "업데이트" }
+          ],
+          "rows": [
+            {
+              "name": "온라인 매출 분석",
+              "team": "커머스팀",
+              "status": "진행 중",
+              "date": "2026.09.28"
+            },
+            {
+              "name": "고객 관리 시스템",
+              "team": "영업팀",
+              "status": "완료",
+              "date": "2026.09.26"
+            },
+            {
+              "name": "마케팅 성과 리포트",
+              "team": "마케팅팀",
+              "status": "검토 중",
+              "date": "2026.09.24"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "settings": { "dataMode": "sample" }
+}

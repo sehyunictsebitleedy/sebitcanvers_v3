@@ -1,0 +1,270 @@
+.schema-dashboard,
+.schema-dashboard * {
+  box-sizing: border-box;
+}
+.schema-dashboard {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  color: var(--db-text);
+  background: var(--db-bg);
+  font-family: Pretendard, "Malgun Gothic", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: left;
+  isolation: isolate;
+}
+.schema-dashboard h2,
+.schema-dashboard h3,
+.schema-dashboard p {
+  margin: 0;
+}
+.schema-dashboard .db-nav {
+  background: var(--db-bg);
+  border-right: 1px solid var(--db-border);
+  padding: 32px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.schema-dashboard .db-logo {
+  font-size: 23px;
+  font-weight: 750;
+  color: var(--db-primary);
+}
+.schema-dashboard .db-nav-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.schema-dashboard .db-nav-items > span {
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--db-muted);
+}
+.schema-dashboard .db-nav-items > .active {
+  color: var(--db-text);
+  background: color-mix(in srgb, var(--db-primary) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--db-primary) 45%, transparent);
+}
+.schema-dashboard .db-sample {
+  font-size: 10px;
+  color: var(--db-muted);
+  letter-spacing: 1px;
+}
+.schema-dashboard .db-body {
+  padding: 30px;
+  min-width: 0;
+}
+.schema-dashboard .db-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 26px;
+  gap: 20px;
+}
+.schema-dashboard .db-heading h2 {
+  font-size: 25px;
+  letter-spacing: -0.6px;
+  color: var(--db-text);
+}
+.schema-dashboard .db-heading p {
+  color: var(--db-muted);
+  font-size: 12px;
+  margin-top: 6px;
+}
+.schema-dashboard .db-section {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--db-gap);
+  margin-top: var(--db-gap);
+}
+.schema-dashboard .db-card {
+  position: relative;
+  min-width: 0;
+  padding: 22px;
+  background: var(--db-surface);
+  border: 1px solid var(--db-border);
+  border-radius: var(--db-radius);
+  overflow-wrap: anywhere;
+}
+.schema-dashboard .db-card h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--db-text);
+}
+.schema-dashboard .db-value {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.6px;
+  font-variant-numeric: tabular-nums;
+  margin-top: 10px;
+}
+.schema-dashboard .db-value > span {
+  font-size: 20px;
+  margin-left: 3px;
+}
+.schema-dashboard .db-change {
+  font-size: 12px;
+  color: #7ee3b5;
+  margin-top: 10px;
+}
+.schema-dashboard .db-change.negative {
+  color: #ffacb8;
+}
+.schema-dashboard .db-change > span {
+  font-size: 10px;
+  color: var(--db-muted);
+  margin-left: 5px;
+}
+.schema-dashboard .db-chart {
+  width: 100%;
+  height: 230px;
+  display: block;
+  margin-top: 12px;
+  overflow: visible;
+}
+.schema-dashboard .db-axis {
+  fill: var(--db-muted);
+  font-size: 11px;
+}
+.schema-dashboard .db-gridline {
+  stroke: var(--db-border);
+  stroke-width: 1;
+}
+.schema-dashboard .db-series,
+.schema-dashboard .db-legend {
+  padding: 0;
+  list-style: none;
+  margin: 10px 0 0;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  color: var(--db-muted);
+  font-size: 11px;
+}
+.schema-dashboard .db-series li,
+.schema-dashboard .db-legend li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.schema-dashboard .db-series i,
+.schema-dashboard .db-legend i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.schema-dashboard .db-donut-layout > svg {
+  display: block;
+  width: 210px;
+  height: 210px;
+  max-width: 100%;
+  margin: auto;
+}
+.schema-dashboard .db-donut-value {
+  fill: var(--db-text);
+  font-size: 30px;
+  font-weight: 700;
+}
+.schema-dashboard .db-donut-caption {
+  fill: var(--db-muted);
+  font-size: 12px;
+}
+.schema-dashboard .db-legend {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.schema-dashboard .db-legend strong {
+  color: var(--db-text);
+  font-weight: 500;
+}
+.schema-dashboard .db-table-scroll {
+  overflow: auto;
+}
+.schema-dashboard table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+  font-size: 12px;
+}
+.schema-dashboard th,
+.schema-dashboard td {
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid var(--db-border);
+  padding: 12px 8px;
+  color: var(--db-text);
+  overflow-wrap: anywhere;
+  max-width: 350px;
+}
+.schema-dashboard th {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--db-muted);
+}
+.schema-dashboard tr:last-child td {
+  border-bottom: 0;
+}
+.schema-dashboard .db-empty {
+  color: var(--db-muted);
+  padding: 30px 0;
+  text-align: center;
+}
+.schema-dashboard .db-visual {
+  background: var(--db-surface);
+  border: 1px solid var(--db-border);
+  padding: 28px;
+  border-radius: var(--db-radius);
+}
+.schema-dashboard .db-visual.hero {
+  padding-block: 55px;
+}
+.schema-dashboard .db-visual p {
+  color: var(--db-muted);
+  margin-top: 10px;
+}
+.schema-dashboard.db-nav-top {
+  grid-template-columns: 1fr;
+}
+.schema-dashboard.db-nav-top .db-nav {
+  border-right: 0;
+  border-bottom: 1px solid var(--db-border);
+  flex-direction: row;
+  align-items: center;
+  padding: 20px 30px;
+}
+.schema-dashboard.db-nav-top .db-nav-items {
+  flex-direction: row;
+}
+.schema-dashboard.db-nav-top .db-nav > .db-sample {
+  margin-left: auto;
+}
+.schema-dashboard .db-select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: 0;
+  border-radius: inherit;
+  cursor: pointer;
+}
+.schema-dashboard .db-select:focus-visible {
+  outline: 3px solid var(--db-primary);
+  outline-offset: 3px;
+}
+.schema-dashboard .db-selected {
+  outline: 2px solid var(--db-primary);
+  outline-offset: 2px;
+}
+.db-invalid {
+  padding: 24px;
+  background: #291d26;
+  border: 1px solid #b06b80;
+  color: #ffe1e8;
+  border-radius: 10px;
+  font-size: 13px;
+}
