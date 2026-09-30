@@ -26,14 +26,19 @@ const css = readFileSync(
   new URL("../src/dashboard/renderer.css", import.meta.url),
   "utf8",
 );
-test("five sample variants validate and render from the shared contract", () => {
-  for (let i = 0; i < 5; i++) {
+test("four sample variants validate with stable legacy type IDs", () => {
+  for (const i of [0, 1, 3, 4]) {
     const sample = createSample(i);
     assert.ok(validateDashboard(sample).success);
     const html = renderToStaticMarkup(<DashboardRenderer schema={sample} />);
     assert.ok(html.includes(sample.header.title));
     assert.equal((html.match(/class="db-card db-kpi/g) ?? []).length, 4);
   }
+  assert.equal(createSample(3).project.type, 'project');
+  assert.equal(createSample(4).project.type, 'monitoring');
+  assert.throws(() => createSample(2));
+  const removed = createSample();
+  assert.ok(!validateDashboard({ ...removed, project: { ...removed.project, type: 'crm' } }).success);
 });
 test("invalid layout, duplicate IDs and unknown executable fields are rejected", () => {
   const sample = createSample();

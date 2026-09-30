@@ -103,7 +103,7 @@ export const dashboardSchema = z
     project: z.strictObject({
       id,
       name: text,
-      type: z.enum(["analytics", "admin", "crm", "project", "monitoring"]),
+      type: z.enum(["analytics", "admin", "project", "monitoring"]),
       createdAt: z.iso.datetime(),
       updatedAt: z.iso.datetime(),
     }),

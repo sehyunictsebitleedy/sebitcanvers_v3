@@ -45,7 +45,7 @@ SEbit은 GNB 마지막 메뉴이며 `http://sebit.co.kr`로 새 창 이동합니
 | 구분 | 범위 |
 |---|---|
 | 제작 대상 | 샘플 데이터 기반 단일 PC 대시보드 |
-| 유형 | Analytics / Admin / CRM / Project / Monitoring |
+| 유형 | Analytics / Admin / Project / Monitoring (후속 사용자 결정으로 CRM 제외) |
 | Create 입력 | Dashboard Type, Navigation, Style, Color, Components, Density, Main Visual, Additional Request |
 | 스타일 | Modern / Minimal / Corporate / Dark |
 | Navigation | Sidebar / Top Navigation |
@@ -99,6 +99,10 @@ React Router, 경량 Store, Zod, Chart.js, 클라이언트 ZIP 라이브러리 �
 주요 화면, 실패 복구, 접근성 및 Preview와 다운로드 결과의 일치를 확인합니다.
 
 ## 현재 구현 상태와 문서 차이
+
+후속 사용자 결정에 따라 홈 예시와 모든 유형 선택 UI는 분석·관리자·프로젝트·모니터링
+4개로 운영합니다. 원본 기획서의 CRM 항목은 현재 지원 범위에서 제외합니다.
+기존 CRM 로컬 데이터는 삭제하지 않고 최근 작업에서 숨깁니다.
 
 Home UI와 공통 Schema/Renderer를 연결했습니다. 샘플 JSON 검증, KPI·4종 차트·Table 표시,
 KPI 제목·값·단위 편집, 1단계 Undo, Schema 저장·복원, 편집 UI 없는 Preview,

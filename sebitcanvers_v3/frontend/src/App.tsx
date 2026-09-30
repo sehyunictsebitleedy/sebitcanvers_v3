@@ -17,7 +17,6 @@ import {
   Settings2,
   SlidersHorizontal,
   Sparkles,
-  Users,
   WandSparkles,
   X,
 } from "lucide-react";
@@ -36,30 +35,28 @@ const Workspace = lazy(() =>
 
 const types = [
   {
+    id: 0,
     name: "분석",
     description: "데이터 속 인사이트를 한눈에",
     color: "#9373fa",
     icon: BarChart3,
   },
   {
+    id: 1,
     name: "관리자",
     description: "시스템 운영과 현황 관리",
     color: "#6096fb",
     icon: LayoutDashboard,
   },
   {
-    name: "CRM",
-    description: "고객 관계부터 영업 성과까지",
-    color: "#4ac6ac",
-    icon: Users,
-  },
-  {
+    id: 3,
     name: "프로젝트",
     description: "팀의 업무와 프로젝트 진행 현황",
     color: "#e9a15f",
     icon: Folder,
   },
   {
+    id: 4,
     name: "모니터링",
     description: "서비스 상태를 실시간으로 확인",
     color: "#e4778d",
@@ -88,7 +85,7 @@ function readDrafts(): Draft[] {
             typeof item.date === "string" &&
             Number.isInteger(item.type) &&
             item.type >= 0 &&
-            item.type < types.length,
+            item.type <= 4,
         )
       : [];
   } catch {
@@ -136,6 +133,8 @@ function App() {
   const [workspace, setWorkspace] = useState<DashboardSchema | null>(null);
   const [year] = useState(() => new Date().getFullYear());
   const [drafts, setDrafts] = useState<Draft[]>(readDrafts);
+  // Keep legacy records in storage, but only expose supported dashboard types.
+  const availableDrafts = drafts.filter(draft => types.some(type => type.id === draft.type));
   const [modal, setModal] = useState<"create" | "preview" | null>(null);
   const [selected, setSelected] = useState(0);
   const [name, setName] = useState("");
@@ -329,18 +328,18 @@ function App() {
             <p>분석부터 운영까지, 내 업무에 맞는 대시보드를 만나보세요.</p>
           </div>
           <div className="template-grid">
-            {types.map((item, i) => (
+            {types.map((item) => (
               <button
                 className="template-card"
                 key={item.name}
                 onClick={() => {
-                  setSelected(i);
+                  setSelected(item.id);
                   setModal("preview");
                 }}
                 style={{ "--type-color": item.color } as CSSProperties}
               >
                 <div className="template-image" aria-hidden="true">
-                  <Dashboard type={i} compact />
+                  <Dashboard type={item.id} compact />
                 </div>
                 <div className="template-info">
                   <div>
@@ -406,9 +405,9 @@ function App() {
           <p className="save-notice" role="status">
             {notice}
           </p>
-          {drafts.length ? (
+          {availableDrafts.length ? (
             <div className="recent-grid">
-              {drafts.map((draft) => (
+              {availableDrafts.map((draft) => (
                 <button
                   className="draft-card"
                   key={draft.id}
@@ -420,7 +419,7 @@ function App() {
                   <span>
                     <strong>{draft.name}</strong>
                     <small>
-                      {types[draft.type].name} 대시보드 ·{" "}
+                      {types.find(type => type.id === draft.type)?.name} 대시보드 ·{" "}
                       {new Date(draft.date).toLocaleDateString("ko-KR")}
                     </small>
                   </span>
@@ -480,7 +479,7 @@ function App() {
               <h2 id="modal-title">
                 {modal === "create"
                   ? "새 대시보드 시작하기"
-                  : `${types[selected].name} 대시보드 예시`}
+                  : `${types.find(type => type.id === selected)?.name} 대시보드 예시`}
               </h2>
               <p>
                 {modal === "create"
@@ -522,17 +521,17 @@ function App() {
               <fieldset>
                 <legend>대시보드 유형</legend>
                 <div className="type-options">
-                  {types.map((item, i) => (
+                  {types.map((item) => (
                     <label
-                      className={selected === i ? "active" : ""}
+                      className={selected === item.id ? "active" : ""}
                       key={item.name}
                     >
                       <input
                         type="radio"
                         name="dashboard-type"
-                        value={i}
-                        checked={selected === i}
-                        onChange={() => setSelected(i)}
+                        value={item.id}
+                        checked={selected === item.id}
+                        onChange={() => setSelected(item.id)}
                       />
                       <item.icon size={21} />
                       <span>{item.name}</span>
