@@ -6,13 +6,16 @@ import "./renderer.css";
 export function Dashboard({
   type = 0,
   compact = false,
+  title,
 }: {
   type?: number;
   compact?: boolean;
+  title?: string;
 }) {
   const [period, setPeriod] = useState("current");
   const schema = useMemo(() => {
     const data = createSample(type);
+    if (title) data.header.title = title;
     if (period === "previous") {
       data.sections.forEach((section) =>
         section.components.forEach((component) => {
@@ -28,7 +31,7 @@ export function Dashboard({
       );
     }
     return data;
-  }, [type, period]);
+  }, [type, period, title]);
   const viewport = useRef<HTMLDivElement>(null);
   const content = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {

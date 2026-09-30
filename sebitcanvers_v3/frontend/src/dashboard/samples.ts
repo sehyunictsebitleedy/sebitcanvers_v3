@@ -5,6 +5,7 @@ import type { DashboardSchema } from "./schema";
 export const sampleDashboard = dashboardSchema.parse(rawSample);
 const variants = [
   {
+    id: 0,
     name: "분석",
     type: "analytics",
     color: "#9373fa",
@@ -13,6 +14,7 @@ const variants = [
     units: ["", "", "%", ""],
   },
   {
+    id: 1,
     name: "관리자",
     type: "admin",
     color: "#6096fb",
@@ -21,14 +23,7 @@ const variants = [
     units: ["", "", "%", ""],
   },
   {
-    name: "CRM",
-    type: "crm",
-    color: "#4ac6ac",
-    titles: ["전체 고객", "신규 리드", "계약 전환율", "진행 상담"],
-    values: [2486, 168, 32.6, 46],
-    units: ["", "", "%", ""],
-  },
-  {
+    id: 3,
     name: "프로젝트",
     type: "project",
     color: "#e9a15f",
@@ -37,6 +32,7 @@ const variants = [
     units: ["", "", "%", ""],
   },
   {
+    id: 4,
     name: "모니터링",
     type: "monitoring",
     color: "#e4778d",
@@ -46,7 +42,7 @@ const variants = [
   },
 ] as const;
 export function createSample(type = 0): DashboardSchema {
-  const variant = variants[type];
+  const variant = variants.find(variant => variant.id === type);
   if (!variant) throw new Error("지원하지 않는 대시보드 유형입니다.");
   const schema = structuredClone(sampleDashboard);
   schema.project.id = `sample-${variant.type}`;

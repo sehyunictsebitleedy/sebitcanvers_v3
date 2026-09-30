@@ -261,7 +261,7 @@ h1 > span {
 }
 .template-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 17px;
   margin-top: 27px;
 }
@@ -578,7 +578,7 @@ legend {
 }
 .type-options {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
 }
 .type-options label {

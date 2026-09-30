@@ -29,7 +29,7 @@ AI 호출 없이 검증된 샘플로 시작합니다. 차트·테이블은 현�
 |---|---|
 | `schema.ts` | Zod 런타임 검증, TypeScript 타입, 불변 KPI 수정 함수 |
 | `sample.json` | 분석 대시보드의 실제 입력 JSON |
-| `samples.ts` | 공통 샘플을 바탕으로 5개 유형 생성 및 검증 |
+| `samples.ts` | 공통 샘플을 바탕으로 4개 유형 생성 및 검증 |
 | `Renderer.tsx` | Schema 기반 KPI, Line/Bar/Area/Donut, Table 렌더링 |
 | `renderer.css` | 서비스 UI와 분리된 결과물 스타일; Export에서도 동일 파일 사용 |
 | `Preview.tsx` | 홈·유형 카드·확대 창에서 같은 Renderer를 축소 표시 |
@@ -62,6 +62,10 @@ AI 호출 없이 검증된 샘플로 시작합니다. 차트·테이블은 현�
 입력 오류로 안내하고 마지막 정상 값을 유지합니다.
 
 ## 저장과 복구
+
+- 지원 유형은 분석·관리자·프로젝트·모니터링입니다. 기존 숫자 ID 0/1/3/4를 유지하며,
+  제거된 CRM(ID 2)은 새 샘플 생성·선택·Schema 검증에서 제외합니다.
+  이전 CRM 목록과 Schema 데이터는 보존하고 화면에서만 숨깁니다.
 
 - 기존 프로젝트 목록 키: `sebit-canvers-drafts-v1`.
 - 새 Schema 키: `sebit-dashboard-schema-v01:<projectId>`.
