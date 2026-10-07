@@ -79,9 +79,11 @@ function KpiForm({
 export function Workspace({
   initial,
   onBack,
+  startInPreview = false,
 }: {
   initial: DashboardSchema;
   onBack: () => void;
+  startInPreview?: boolean;
 }) {
   const [schema, setSchema] = useState(() => dashboardSchema.parse(initial));
   const [previous, setPrevious] = useState<DashboardSchema | null>(null);
@@ -90,7 +92,7 @@ export function Workspace({
       .flatMap((section) => section.components)
       .find((component) => component.type === "kpi")?.id ?? "",
   );
-  const [preview, setPreview] = useState(false);
+  const [preview, setPreview] = useState(startInPreview);
   const [storageStatus, setStorageStatus] = useState("저장 대기");
   const [exportStatus, setExportStatus] = useState("");
   const [busy, setBusy] = useState(false);
@@ -192,9 +194,19 @@ export function Workspace({
   return (
     <main className={`workspace ${preview ? "workspace-preview" : ""}`}>
       <header className="workspace-toolbar">
-        <button className="button secondary" disabled={busy} onClick={() => {
-          if (!unsaved || window.confirm('저장되지 않은 변경 내용이 있습니다. 홈으로 나가면 현재 변경을 잃을 수 있습니다. 나가시겠어요?')) onBack();
-        }}>
+        <button
+          className="button secondary"
+          disabled={busy}
+          onClick={() => {
+            if (
+              !unsaved ||
+              window.confirm(
+                "저장되지 않은 변경 내용이 있습니다. 홈으로 나가면 현재 변경을 잃을 수 있습니다. 나가시겠어요?",
+              )
+            )
+              onBack();
+          }}
+        >
           <ArrowLeft size={16} />홈
         </button>
         <div className="workspace-project">

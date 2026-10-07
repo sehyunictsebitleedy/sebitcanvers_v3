@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { createOptionsSchema, safeUrl } from "../create/contracts";
 
 const text = z.string().trim().min(1).max(120);
 const id = z.string().regex(/^[a-zA-Z0-9_-]{1,80}$/);
@@ -96,6 +97,23 @@ export const componentSchema = z.discriminatedUnion("type", [
   kpiSchema,
   chartSchema,
   tableSchema,
+  z
+    .strictObject({
+      ...base,
+      type: z.literal("progress"),
+      value: z.number().finite().min(0),
+      max: z.number().finite().positive(),
+    })
+    .refine(
+      (value) => value.value <= value.max,
+      "진행 값은 최대값을 초과할 수 없습니다.",
+    ),
+  z.strictObject({
+    ...base,
+    type: z.literal("notification"),
+    message: z.string().min(1).max(500),
+    status: z.enum(["info", "success", "warning", "error"]),
+  }),
 ]);
 export const dashboardSchema = z
   .strictObject({
@@ -116,12 +134,14 @@ export const dashboardSchema = z
       muted: color,
       border: color,
       radius: z.number().int().min(0).max(24),
+      preset: z.enum(["modern", "minimal", "corporate", "dark"]).optional(),
     }),
     layout: z.strictObject({
       desktopWidth: z.literal(1280),
       minWidth: z.literal(1280),
       gridColumns: z.literal(12),
       gap: z.number().int().min(8).max(40),
+      density: z.enum(["compact", "standard", "spacious"]).optional(),
     }),
     navigation: z.strictObject({
       type: z.enum(["sidebar", "top"]),
@@ -134,9 +154,16 @@ export const dashboardSchema = z
     header: z.strictObject({ title: text, description: z.string().max(300) }),
     mainVisual: z.strictObject({
       enabled: z.boolean(),
-      type: z.enum(["banner", "hero"]),
+      type: z.enum(["banner", "hero", "image-text"]),
       title: text,
       description: z.string().max(500),
+      height: z.enum(["small", "medium", "large"]).optional(),
+      alignment: z.enum(["left", "center", "right"]).optional(),
+      overlay: z.number().min(0).max(80).optional(),
+      imageAssetId: id.nullable().optional(),
+      cta: z
+        .strictObject({ enabled: z.boolean(), label: text, url: safeUrl })
+        .optional(),
     }),
     sections: z
       .array(
@@ -149,7 +176,10 @@ export const dashboardSchema = z
       )
       .min(1)
       .max(10),
-    settings: z.strictObject({ dataMode: z.literal("sample") }),
+    settings: z.strictObject({
+      dataMode: z.literal("sample"),
+      selections: createOptionsSchema.optional(),
+    }),
   })
   .superRefine((schema, ctx) => {
     const ids = new Set<string>();

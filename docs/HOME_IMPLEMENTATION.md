@@ -24,7 +24,7 @@ npm.cmd run dev
 - Hero 및 기간 선택이 가능한 샘플 대시보드
 - 주요 기능 소개, 4개 유형 미리보기(분석·관리자·프로젝트·모니터링), 제작 과정, 최근 작업, Footer
 - 사용방법 및 예시 보기 앵커 이동
-- 네이티브 dialog 기반 예시 확대 및 프로젝트 시작 창 → 샘플 편집 화면
+- 네이티브 dialog 기반 예시 확대, 별도 Create 옵션 선택 화면 → 샘플 Preview → 편집
 - 공통 Schema/Renderer를 사용하는 홈·유형별 미리보기
 - 프로젝트 이름·유형 및 검증된 Schema를 localStorage에 저장하고 최근 작업에서 복원
 - 저장 실패 안내, 키보드 포커스, Escape 닫기, 모션 감소 설정
@@ -36,6 +36,8 @@ npm.cmd run dev
 KPI 편집·1단계 Undo·Preview·검증 후 ZIP 다운로드는 연결했습니다.
 AI 생성·AI 수정·전체 CMS·서버 저장은 아직 미구현입니다.
 자세한 범위는 [Dashboard 엔진 구현](DASHBOARD_ENGINE.md)을 참고하세요.
+
+Create의 8개 옵션·설정 요약·이미지 저장·샘플 연결은 [Create 구현 문서](CREATE_IMPLEMENTATION.md)를 참고하세요.
 
 ## 검증
 

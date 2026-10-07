@@ -17,10 +17,10 @@ test("workspace applies KPI edits, rejects invalid input, undoes, previews and p
     localStorage: dom.window.localStorage,
     IS_REACT_ACT_ENVIRONMENT: true,
   });
-  const { render, screen, fireEvent, cleanup, waitFor } =
+  const { render, screen, fireEvent, cleanup, waitFor, within } =
     await import("@testing-library/react");
   const server = await createServer({
-    server: { middlewareMode: true },
+    server: { middlewareMode: true, hmr: { port: 0 } },
     appType: "custom",
   });
   try {
@@ -73,35 +73,87 @@ test("workspace applies KPI edits, rejects invalid input, undoes, previews and p
     render(<Workspace initial={saved} onBack={() => {}} />);
     assert.ok(screen.getByText("876,543"));
     cleanup();
-    Object.assign(globalThis, { ResizeObserver: class { observe() {} disconnect() {} } });
-    dom.window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
-    dom.window.HTMLDialogElement.prototype.close = function () { this.open = false; };
-    const { default: App } = await server.ssrLoadModule('/src/App.tsx');
-    localStorage.setItem('sebit-canvers-drafts-v1', JSON.stringify([
-      { id: 'legacy-crm', name: '이전 CRM 작업', type: 2, date: '2026-09-30T00:00:00.000Z' },
-      { id: 'legacy-project', name: '이전 프로젝트 작업', type: 3, date: '2026-09-30T00:00:00.000Z' },
-      { id: 'legacy-monitor', name: '이전 모니터링 작업', type: 4, date: '2026-09-30T00:00:00.000Z' },
-    ]));
-    render(<App/>);
-    assert.equal(document.querySelectorAll('.template-card').length, 4);
-    assert.equal(screen.queryByText('이전 CRM 작업'), null);
-    assert.ok(screen.getByText('이전 프로젝트 작업'));
-    assert.ok(screen.getByText('이전 모니터링 작업'));
-    fireEvent.click(screen.getAllByRole('button', { name: '대시보드 만들기' })[0]);
-    assert.equal(screen.getAllByRole('radio').length, 4);
-    assert.equal(screen.queryByRole('radio', { name: 'CRM' }), null);
-    fireEvent.click(screen.getByRole('radio', { name: '모니터링' }));
-    fireEvent.change(screen.getByLabelText('프로젝트 이름'), { target: { value: '통합 검증 프로젝트' } });
-    fireEvent.click(screen.getByRole('button', { name: '샘플 편집 시작' }));
-    await waitFor(() => assert.ok(screen.getByRole('heading', { name: '통합 검증 프로젝트' })));
-    const savedList = JSON.parse(localStorage.getItem('sebit-canvers-drafts-v1')!);
-    assert.ok(savedList.some((item: { id: string }) => item.id === 'legacy-crm'));
-    assert.equal(loadProject(localStorage, savedList[0].id)?.project.type, 'monitoring');
-    fireEvent.change(screen.getByLabelText('값'), { target: { value: '246810' } });
-    fireEvent.click(screen.getByRole('button', { name: '변경 적용' }));
-    fireEvent.click(screen.getByRole('button', { name: '홈', exact: true }));
-    fireEvent.click(screen.getByRole('button', { name: /통합 검증 프로젝트.*작업 열기/ }));
-    await waitFor(() => assert.ok(screen.getByText('246,810')));
+    Object.assign(globalThis, {
+      ResizeObserver: class {
+        observe() {}
+        disconnect() {}
+      },
+    });
+    dom.window.HTMLDialogElement.prototype.showModal = function () {
+      this.open = true;
+    };
+    dom.window.HTMLDialogElement.prototype.close = function () {
+      this.open = false;
+    };
+    const { default: App } = await server.ssrLoadModule("/src/App.tsx");
+    localStorage.setItem(
+      "sebit-canvers-drafts-v1",
+      JSON.stringify([
+        {
+          id: "legacy-crm",
+          name: "이전 CRM 작업",
+          type: 2,
+          date: "2026-09-30T00:00:00.000Z",
+        },
+        {
+          id: "legacy-project",
+          name: "이전 프로젝트 작업",
+          type: 3,
+          date: "2026-09-30T00:00:00.000Z",
+        },
+        {
+          id: "legacy-monitor",
+          name: "이전 모니터링 작업",
+          type: 4,
+          date: "2026-09-30T00:00:00.000Z",
+        },
+      ]),
+    );
+    render(<App />);
+    assert.equal(document.querySelectorAll(".template-card").length, 4);
+    assert.equal(screen.queryByText("이전 CRM 작업"), null);
+    assert.ok(screen.getByText("이전 프로젝트 작업"));
+    assert.ok(screen.getByText("이전 모니터링 작업"));
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "대시보드 만들기" })[0],
+    );
+    const typeGroup = await screen.findByRole("group", {
+      name: "대시보드 유형",
+    });
+    assert.equal(within(typeGroup).getAllByRole("radio").length, 4);
+    assert.equal(screen.queryByRole("radio", { name: "CRM" }), null);
+    fireEvent.click(screen.getByRole("radio", { name: "모니터링" }));
+    fireEvent.change(screen.getByLabelText("프로젝트 이름"), {
+      target: { value: "통합 검증 프로젝트" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "샘플 미리보기 만들기" }),
+    );
+    await waitFor(() =>
+      assert.ok(
+        screen.getByRole("heading", { name: "통합 검증 프로젝트", level: 1 }),
+      ),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "편집으로 돌아가기" }));
+    const savedList = JSON.parse(
+      localStorage.getItem("sebit-canvers-drafts-v1")!,
+    );
+    assert.ok(
+      savedList.some((item: { id: string }) => item.id === "legacy-crm"),
+    );
+    assert.equal(
+      loadProject(localStorage, savedList[0].id)?.project.type,
+      "monitoring",
+    );
+    fireEvent.change(screen.getByLabelText("값"), {
+      target: { value: "246810" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "변경 적용" }));
+    fireEvent.click(screen.getByRole("button", { name: "홈", exact: true }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /통합 검증 프로젝트.*작업 열기/ }),
+    );
+    await waitFor(() => assert.ok(screen.getByText("246,810")));
   } finally {
     cleanup();
     await server.close();

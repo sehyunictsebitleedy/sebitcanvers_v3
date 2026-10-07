@@ -108,18 +108,23 @@ Home UI와 공통 Schema/Renderer를 연결했습니다. 샘플 JSON 검증, KPI
 KPI 제목·값·단위 편집, 1단계 Undo, Schema 저장·복원, 편집 UI 없는 Preview,
 검증 후 최소 HTML/CSS/JS ZIP 다운로드를 지원합니다.
 
-AI 생성·수정, 전체 Create 옵션, 전체 CMS, 이미지 Asset 및 완전한 Finalize 화면은
-아직 구현하지 않았습니다. [엔진 구현 문서](docs/DASHBOARD_ENGINE.md)와
+Create의 8개 옵션, 우측 설정 요약, 조건 자동 저장·복원과 샘플 Preview 연결을 구현했습니다.
+스타일·색상·밀도·Navigation·컴포넌트 선택이 결과에 반영되며, 메인 비주얼 이미지·CTA와
+진행률·알림도 지원합니다. 이미지는 IndexedDB에 저장하고 ZIP에 포함합니다.
+
+AI 생성·수정, 전체 CMS와 완전한 Finalize 화면은 아직 구현하지 않았습니다.
+추가 요청은 저장만 하며 AI 연결 전에는 샘플에 반영하지 않습니다.
+[Create 구현 문서](docs/CREATE_IMPLEMENTATION.md), [엔진 구현 문서](docs/DASHBOARD_ENGINE.md)와
 [Home 구현 문서](docs/HOME_IMPLEMENTATION.md)를 참고하세요.
 
 | 항목 | 기획서 기준 | 현재 디자인 가이드 또는 구현 |
 |---|---|---|
 | 서비스 테마 | Light + Minimal + Professional + Blue Accent | 사용자가 지정한 디자인 가이드·시안을 따라 Dark Premium SaaS 적용 |
-| 만들기 CTA | Create 화면으로 진입 | 이름·유형 선택 Modal → 샘플 KPI 편집 화면 |
+| 만들기 CTA | Create 화면으로 진입 | 8개 옵션 선택 Create → 샘플 Preview → KPI 편집 |
 | 최근 작업 없음 | 영역 숨김 | 빈 상태와 새 프로젝트 버튼 표시 |
 | 최근 작업 복원 | 조건·Schema·상태에 따라 편집 흐름 복원 | 저장된 Schema를 편집 화면으로 복원. 기존 초안은 샘플로 초기화 |
 | 보관 수 | 5~10개는 제안, 최종 정책 미정 | 자동 개수 제한·삭제 없음. 브라우저 용량 초과 시 오류 안내 |
-| 최소 Export | 최종 Library·Asset까지 동일 결과 출력 | KPI·SVG 차트·Table 및 텍스트 Main Visual, 검증 Snapshot ZIP |
+| 최소 Export | 최종 Library·Asset까지 동일 결과 출력 | KPI·SVG 차트·Table·Progress·Notification·이미지 Main Visual, 검증 Snapshot ZIP |
 | Footer | 약관·개인정보처리방침·서비스 안내 등 | 브랜드·사용방법·SEbit·Copyright 구현, 정책 링크 미구현 |
 
 기획서 요약과 기존 디자인 결정을 구분하기 위해 차이를 기록했습니다.
@@ -166,3 +171,4 @@ npm.cmd test
 - [기준 시안](docs/design/design_b.png): Home / Create / CMS 화면 참고
 - [Home 구현 기록](docs/HOME_IMPLEMENTATION.md): 현재 동작 및 미구현 범위
 - [Dashboard 엔진 구현](docs/DASHBOARD_ENGINE.md): Schema 계약, 편집·저장·Export 및 테스트
+- [Create 화면 구현](docs/CREATE_IMPLEMENTATION.md): 옵션, 요약, 저장·복원, 이미지 및 샘플 연결
