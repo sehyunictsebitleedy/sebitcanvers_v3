@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "tsx --tsconfig tsconfig.app.json --test tests/*.test.tsx"
+    "test": "tsx --tsconfig tsconfig.app.json --test tests/*.test.tsx",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "jszip": "^3.10.2",
@@ -18,6 +19,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.0",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",

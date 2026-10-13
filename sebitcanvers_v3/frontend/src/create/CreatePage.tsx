@@ -30,6 +30,7 @@ import { SchemaPreview } from "../dashboard/Preview";
 import { AssetImage } from "../dashboard/AssetImage";
 import type { DashboardSchema } from "../dashboard/schema";
 import "./create.css";
+import { generateDashboard } from "./generation";
 
 type Choice<T> = {
   value: T;
@@ -148,6 +149,12 @@ export function CreatePage({
   const [uploading, setUploading] = useState(false);
   const [imageError, setImageError] = useState("");
   const lock = useRef(false);
+  const request = useRef<AbortController | null>(null);
+  const [generation, setGeneration] = useState<"idle" | "pending" | "failed">(
+    "idle",
+  );
+  const [generationError, setGenerationError] = useState("");
+  useEffect(() => () => request.current?.abort(), []);
   const uploadVersion = useRef(0);
   const heading = useRef<HTMLHeadingElement>(null);
   const persist = (next: CreateOptions, allow = !blocked) => {
@@ -257,7 +264,7 @@ export function CreatePage({
     },
     [],
   );
-  const submit = async (event: FormEvent) => {
+  const submit = async (event: FormEvent, ai = false) => {
     event.preventDefault();
     if (lock.current || uploading) return;
     if (!validation.success) {
@@ -267,6 +274,13 @@ export function CreatePage({
     lock.current = true;
     setBusy(true);
     setIssues([]);
+    const controller = new AbortController();
+    request.current = controller;
+    if (ai) {
+      setGeneration("pending");
+      setGenerationError("");
+    }
+    const timer = setTimeout(() => controller.abort("timeout"), 125000);
     try {
       if (
         options.mainVisual.enabled &&
@@ -276,25 +290,105 @@ export function CreatePage({
         throw new Error(
           "저장된 이미지가 없습니다. 이미지를 교체하거나 제거해 주세요.",
         );
-      const schema = buildDashboard(
-        options,
-        crypto.randomUUID(),
-        new Date().toISOString(),
-      );
       persist(options);
+      const schema = ai
+        ? await generateDashboard(options, controller.signal)
+        : buildDashboard(
+            options,
+            crypto.randomUUID(),
+            new Date().toISOString(),
+          );
+      if (controller.signal.aborted) return;
       onStart(schema);
     } catch (error) {
+      if (controller.signal.aborted && controller.signal.reason !== "timeout")
+        return;
+      if (ai) {
+        setGenerationError(
+          controller.signal.aborted
+            ? "생성 시간이 초과되었습니다. 다시 시도해 주세요."
+            : error instanceof Error
+              ? error.message
+              : "생성에 실패했습니다.",
+        );
+        setGeneration("failed");
+      }
       setIssues([
         error instanceof Error
           ? error.message
           : "미리보기를 만들 수 없습니다. 다시 시도해 주세요.",
       ]);
     } finally {
+      clearTimeout(timer);
       setBusy(false);
       lock.current = false;
     }
   };
   const selectedType = dashboardTypes.find((item) => item.id === options.type)!;
+  if (generation !== "idle")
+    return (
+      <main
+        className="generation-page container"
+        aria-busy={generation === "pending"}
+      >
+        <span className="create-eyebrow">DASHBOARD BUILDER · GENERATING</span>
+        <h1>
+          {generation === "pending"
+            ? "대시보드를 만들고 있어요"
+            : "생성을 완료하지 못했어요"}
+        </h1>
+        <p>
+          {options.name} · {selectedType.name} · 선택 조건과 추가 요청으로 샘플
+          데이터를 구성합니다.
+        </p>
+        <ol className="generation-stages">
+          <li>선택 조건 확인 완료</li>
+          <li aria-current="step">
+            {generation === "pending"
+              ? "AI 생성 및 결과 검증 중"
+              : "생성 중 오류 발생"}
+          </li>
+          <li>완료되면 미리보기로 이동</li>
+        </ol>
+        {generation === "pending" ? (
+          <div className="generation-skeleton" aria-hidden="true">
+            <div />
+            <div />
+            <div />
+            <div />
+          </div>
+        ) : (
+          <p className="form-error" role="alert">
+            {generationError}
+          </p>
+        )}
+        <div className="generation-actions">
+          {generation === "failed" && (
+            <button
+              className="button primary"
+              onClick={(e) => void submit(e, true)}
+            >
+              다시 생성
+            </button>
+          )}
+          <button
+            className="button secondary"
+            onClick={() => {
+              request.current?.abort();
+              setGeneration("idle");
+              setIssues([]);
+            }}
+          >
+            {generation === "pending"
+              ? "생성 취소 · 조건으로 돌아가기"
+              : "조건 수정하기"}
+          </button>
+        </div>
+        <p>
+          선택한 조건은 유지됩니다. AI 결과는 검증을 통과한 경우에만 저장됩니다.
+        </p>
+      </main>
+    );
   return (
     <main className="create-page container" id="main">
       <button className="create-back" onClick={onHome}>
@@ -727,14 +821,14 @@ export function CreatePage({
                 <span>{options.additionalRequest.length} / 500</span>
               </div>
               <p className="create-help">
-                추가 요청은 저장되며, AI 연결 후 생성에 사용됩니다. 현재
-                샘플에는 반영되지 않습니다.
+                추가 요청은 AI 생성에 반영됩니다. 샘플 미리보기에는 반영되지
+                않습니다.
               </p>
             </section>
             <div className="create-submit">
               <p>
                 <Bell size={15} />
-                현재는 선택 조건을 반영한 샘플 미리보기를 만듭니다.
+                AI로 업무에 맞게 생성하거나, 기본 샘플을 먼저 확인하세요.
               </p>
               {issues.length > 0 && (
                 <ul className="create-error" role="alert">
@@ -745,6 +839,14 @@ export function CreatePage({
               )}
               <button
                 className="button primary"
+                type="button"
+                disabled={busy || uploading}
+                onClick={(event) => void submit(event, true)}
+              >
+                AI 대시보드 생성 <ArrowRight size={17} />
+              </button>
+              <button
+                className="button secondary"
                 type="submit"
                 disabled={busy || uploading}
               >

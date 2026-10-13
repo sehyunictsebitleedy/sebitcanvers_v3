@@ -15,11 +15,18 @@ export function SchemaPreview({ schema }: { schema: DashboardSchema }) {
       child.style.transform = `scale(${scale})`;
       parent.style.height = `${child.scrollHeight * scale}px`;
     };
-    const observer = new ResizeObserver(resize);
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(resize);
+    });
     observer.observe(parent);
     observer.observe(child);
     resize();
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
   }, [schema.layout.desktopWidth]);
   return (
     <div className="schema-preview">
@@ -71,11 +78,18 @@ export function Dashboard({
       child.style.transform = `scale(${scale})`;
       parent.style.height = `${child.scrollHeight * scale}px`;
     };
-    const observer = new ResizeObserver(resize);
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(resize);
+    });
     observer.observe(parent);
     observer.observe(child);
     resize();
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
   }, [schema.layout.desktopWidth]);
   return (
     <div className={`schema-preview ${compact ? "is-compact" : ""}`}>

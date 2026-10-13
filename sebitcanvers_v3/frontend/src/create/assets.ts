@@ -41,6 +41,16 @@ export async function saveImage(file: File): Promise<string> {
     throw new Error(
       "이미지 형식이 올바르지 않습니다. 다른 파일을 선택해 주세요.",
     );
+  if (typeof createImageBitmap === "function") {
+    try {
+      const image = await createImageBitmap(file);
+      image.close();
+    } catch {
+      throw new Error(
+        "이미지 내용을 읽을 수 없습니다. 손상되지 않은 파일을 선택해 주세요.",
+      );
+    }
+  }
   const id = `image-${crypto.randomUUID()}`;
   const db = await openDatabase();
   await new Promise<void>((resolve, reject) => {

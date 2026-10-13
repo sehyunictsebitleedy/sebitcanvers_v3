@@ -205,6 +205,7 @@ test("Create UI synchronizes summary, restores options, blocks empty components 
     window: dom.window,
     document: dom.window.document,
     HTMLElement: dom.window.HTMLElement,
+    cancelAnimationFrame: () => {},
     localStorage: dom.window.localStorage,
     ResizeObserver: class {
       observe() {}
@@ -215,7 +216,8 @@ test("Create UI synchronizes summary, restores options, blocks empty components 
   const { render, screen, within, fireEvent, cleanup, waitFor } =
     await import("@testing-library/react");
   const server = await createServer({
-    server: { middlewareMode: true, hmr: { port: 0 } },
+    cacheDir: "node_modules/.vite-test-create",
+    server: { middlewareMode: true, ws: { port: 24679 } },
     appType: "custom",
   });
   try {

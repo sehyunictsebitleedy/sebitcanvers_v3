@@ -1,5 +1,8 @@
 # Dashboard 엔진 1차 구현
 
+> 2026-10-13: 현재 5개 컴포넌트의 CMS 편집, AI 생성 API, Finalize와 실제 브라우저 검수를 추가했습니다.
+> 최신 변경은 [AI 생성·CMS·Finalize 문서](GENERATION_CMS_FINALIZE.md)를 참고하세요.
+
 > 이 문서의 초기 구현 이후 Create 옵션과 Progress/Notification, 스타일·밀도,
 > 이미지 Main Visual·CTA 및 ZIP Asset을 추가했습니다. 최신 확장 범위는
 > [Create 구현 문서](CREATE_IMPLEMENTATION.md)를 참고하세요.

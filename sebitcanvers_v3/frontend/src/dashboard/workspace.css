@@ -211,3 +211,140 @@
 .preview-modal .schema-preview {
   width: 100%;
 }
+.workspace-tree details {
+  margin-top: 15px;
+  font-size: 12px;
+}
+.workspace-tree summary {
+  color: #a9b7cc;
+  padding: 8px 0;
+  cursor: pointer;
+}
+.workspace-tree details button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #bfcae0;
+  padding: 11px;
+  border-radius: 7px;
+}
+.workspace-tree details button.active {
+  background: #322750;
+  border-color: #8872b8;
+  color: #ece5ff;
+}
+.tree-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 20px;
+}
+.tree-actions button,
+.data-editor button {
+  background: #26334b;
+  color: #eef2fa;
+  border: 1px solid #465671;
+  padding: 7px;
+  border-radius: 5px;
+}
+.workspace-form select,
+.workspace-form textarea {
+  width: 100%;
+  padding: 10px;
+  background: #0d1421;
+  color: #eef2fa;
+  border: 1px solid #3c4a62;
+  border-radius: 7px;
+}
+.workspace-form textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+.workspace-form input[type="checkbox"] {
+  width: auto;
+  margin-left: 10px;
+}
+.workspace-form .button {
+  margin-top: 12px;
+}
+.workspace-form img {
+  max-width: 100%;
+  margin-top: 20px;
+}
+.data-editor {
+  border-top: 1px solid #465671;
+  margin-top: 20px;
+  padding-top: 12px;
+}
+.data-editor h3 {
+  font-size: 14px;
+}
+.data-grid {
+  overflow: auto;
+  max-height: 440px;
+  margin-block: 18px;
+}
+.data-grid input {
+  min-width: 110px;
+}
+.data-grid th {
+  min-width: 110px;
+  font-size: 12px;
+}
+.finalize-dialog {
+  width: 600px;
+  max-height: 85vh;
+  overflow: auto;
+  background: #141e2e;
+  color: #eef2fa;
+  border: 1px solid #485b79;
+  border-radius: 16px;
+  padding: 32px;
+}
+.finalize-dialog::backdrop {
+  background: #030711b3;
+}
+.finalize-dialog h2 {
+  font-size: 24px;
+}
+.finalize-dialog p {
+  font-size: 14px;
+  line-height: 1.8;
+}
+.finalize-success {
+  color: #8bdfbb;
+}
+.workspace :focus-visible {
+  outline: 2px solid #b69af9;
+  outline-offset: 3px;
+}
+.data-editor {
+  width: 760px;
+  max-height: 80vh;
+  overflow: auto;
+  background: #141e2e;
+  color: #eef2fa;
+  border: 1px solid #485b79;
+  border-radius: 14px;
+  padding: 28px;
+}
+.data-editor::backdrop {
+  background: #030711b3;
+}
+.data-editor > label {
+  display: inline-block;
+  width: 30%;
+  margin-right: 3%;
+}
+.data-editor fieldset {
+  margin-top: 24px;
+}
+.data-editor fieldset label {
+  display: inline-block;
+  width: 30%;
+  margin-right: 3%;
+}
+.data-editor button {
+  margin-right: 10px;
+}

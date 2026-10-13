@@ -630,3 +630,46 @@
     gap: 14px;
   }
 }
+.generation-page {
+  padding-block: 80px;
+  max-width: 900px;
+  min-height: 70vh;
+}
+.generation-page h1 {
+  margin: 22px 0;
+  font-size: 34px;
+}
+.generation-page p,
+.generation-stages {
+  color: #b2bfd4;
+  line-height: 1.9;
+}
+.generation-stages {
+  display: flex;
+  gap: 40px;
+  padding: 24px;
+  margin-block: 30px;
+}
+.generation-stages [aria-current] {
+  color: #c8baff;
+}
+.generation-actions {
+  display: flex;
+  gap: 14px;
+  margin-block: 32px;
+}
+.generation-skeleton {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+.generation-skeleton div {
+  height: 95px;
+  border: 1px solid #303d51;
+  border-radius: 12px;
+  background: #182235;
+}
+.generation-skeleton div:last-child {
+  grid-column: 1 / -1;
+  height: 180px;
+}

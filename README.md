@@ -112,25 +112,46 @@ Create의 8개 옵션, 우측 설정 요약, 조건 자동 저장·복원과 샘
 스타일·색상·밀도·Navigation·컴포넌트 선택이 결과에 반영되며, 메인 비주얼 이미지·CTA와
 진행률·알림도 지원합니다. 이미지는 IndexedDB에 저장하고 ZIP에 포함합니다.
 
-AI 생성·수정, 전체 CMS와 완전한 Finalize 화면은 아직 구현하지 않았습니다.
-추가 요청은 저장만 하며 AI 연결 전에는 샘플에 반영하지 않습니다.
+AI 생성 API와 Generating, 현재 5개 컴포넌트의 CMS 편집 및 Finalize/Download 화면을 연결했습니다.
+AI 생성에는 서버의 API Key·모델 설정이 필요하며 추가 요청을 생성에 전달합니다.
+기본 샘플 미리보기는 별도로 제공하고 추가 요청을 반영하지 않습니다.
+AI Edit/Patch와 0.1 Schema 외의 전체 V1 Component Library는 후속 범위입니다.
+[생성·CMS·Finalize 실행 및 검수 문서](docs/GENERATION_CMS_FINALIZE.md)를 참고하세요.
 [Create 구현 문서](docs/CREATE_IMPLEMENTATION.md), [엔진 구현 문서](docs/DASHBOARD_ENGINE.md)와
 [Home 구현 문서](docs/HOME_IMPLEMENTATION.md)를 참고하세요.
 
 | 항목 | 기획서 기준 | 현재 디자인 가이드 또는 구현 |
 |---|---|---|
 | 서비스 테마 | Light + Minimal + Professional + Blue Accent | 사용자가 지정한 디자인 가이드·시안을 따라 Dark Premium SaaS 적용 |
-| 만들기 CTA | Create 화면으로 진입 | 8개 옵션 선택 Create → 샘플 Preview → KPI 편집 |
+| 만들기 CTA | Create 화면으로 진입 | Create → AI 생성 또는 기본 샘플 → Preview → CMS 편집 |
 | 최근 작업 없음 | 영역 숨김 | 빈 상태와 새 프로젝트 버튼 표시 |
 | 최근 작업 복원 | 조건·Schema·상태에 따라 편집 흐름 복원 | 저장된 Schema를 편집 화면으로 복원. 기존 초안은 샘플로 초기화 |
 | 보관 수 | 5~10개는 제안, 최종 정책 미정 | 자동 개수 제한·삭제 없음. 브라우저 용량 초과 시 오류 안내 |
-| 최소 Export | 최종 Library·Asset까지 동일 결과 출력 | KPI·SVG 차트·Table·Progress·Notification·이미지 Main Visual, 검증 Snapshot ZIP |
+| 최소 Export | 최종 Library·Asset까지 동일 결과 출력 | KPI·SVG 차트·Table·Progress·Notification·이미지 Main Visual, Finalize 검증 후 Snapshot ZIP |
 | Footer | 약관·개인정보처리방침·서비스 안내 등 | 브랜드·사용방법·SEbit·Copyright 구현, 정책 링크 미구현 |
 
 기획서 요약과 기존 디자인 결정을 구분하기 위해 차이를 기록했습니다.
 서비스의 다크 디자인 기준은 유지하며, 현재 엔진 계약은 전체 V1 이전의 `0.1`입니다.
 
 ## 수정 내역
+
+### 2026-10-13 — Create 검수 및 AI 생성·CMS·Finalize
+
+- 브랜치 `feat/ai-generation-cms-finalize`를 최신 Create 커밋 `6edb415`에서 생성했습니다.
+- Create의 4개 유형, 조건 복원, 1280/1440/1920px 레이아웃을 Chromium에서 검수하고
+  미리보기 ResizeObserver 경고와 손상된 이미지 업로드 검증을 개선했습니다.
+- Node.js/TypeScript 백엔드에 OpenAI 생성 API, 공통 Schema 검증, 1회 Repair,
+  요청 크기·빈도·동시 처리 제한, 시간 초과·점검 모드·오류 안내를 추가했습니다.
+- Generating 상태, 취소·재시도·조건 복귀, 성공 시 Preview 저장을 연결했습니다.
+- KPI·차트·표·진행률·알림 및 테마·메뉴명·메인 비주얼을 편집할 수 있습니다.
+  Tree 선택·숨김·이동·삭제·Undo와 차트/표 데이터 입력 Modal을 제공합니다.
+- Finalize에서 데이터·이미지·렌더링과 실제 ZIP 생성을 검사한 뒤 확정합니다.
+  실패 시 수정 위치로 이동하며, 편집 복귀 시 확정을 해제합니다.
+- 편집한 프로젝트명과 수정 시각이 홈의 최근 작업에도 반영됩니다.
+- 검증: 프론트엔드 테스트 20개, 백엔드 테스트 5개, Chromium E2E 5개.
+  실제 ZIP 다운로드·압축 해제 후 `file://` 실행을 포함합니다.
+- 실제 AI 제공업체 호출은 서버 키·모델 설정 후 확인해야 합니다.
+  실행 방법과 현재 범위는 [상세 문서](docs/GENERATION_CMS_FINALIZE.md)에 정리했습니다.
 
 ### 2026-10-07 — Create 옵션 선택 화면
 
@@ -165,6 +186,8 @@ AI 생성·수정, 전체 CMS와 완전한 Finalize 화면은 아직 구현하�
 ├─ backend/
 ├─ docs/
 │  ├─ HOME_IMPLEMENTATION.md
+│  ├─ CREATE_IMPLEMENTATION.md
+│  ├─ GENERATION_CMS_FINALIZE.md
 │  └─ design/
 │     ├─ DESIGN_GUIDE.md
 │     └─ design_b.png
@@ -185,6 +208,7 @@ npm.cmd run dev
 npm.cmd run build
 npm.cmd run lint
 npm.cmd test
+npm.cmd run test:e2e
 ```
 
 ## 참고 문서
@@ -195,3 +219,4 @@ npm.cmd test
 - [Home 구현 기록](docs/HOME_IMPLEMENTATION.md): 현재 동작 및 미구현 범위
 - [Dashboard 엔진 구현](docs/DASHBOARD_ENGINE.md): Schema 계약, 편집·저장·Export 및 테스트
 - [Create 화면 구현](docs/CREATE_IMPLEMENTATION.md): 옵션, 요약, 저장·복원, 이미지 및 샘플 연결
+- [AI 생성·CMS·Finalize](docs/GENERATION_CMS_FINALIZE.md): 백엔드 환경변수·실행, 편집·확정·다운로드와 검수

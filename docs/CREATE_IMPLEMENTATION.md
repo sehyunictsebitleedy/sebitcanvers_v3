@@ -1,5 +1,9 @@
 # Create 옵션 선택 화면
 
+> 2026-10-13 업데이트: AI 생성 버튼·Generating·CMS 확장·Finalize를 연결했습니다.
+> 아래는 최초 Create 구현 기록이며, 최신 동작과 실제 브라우저 검수는
+> [AI 생성·CMS·Finalize 문서](GENERATION_CMS_FINALIZE.md)를 참고하세요.
+
 ## 구현 범위
 
 홈의 ‘대시보드 만들기’는 기존 Modal 대신 `#create` 화면을 엽니다.

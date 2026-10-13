@@ -1,80 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import type { FormEvent } from "react";
 import { ArrowLeft, Download, Eye, Pencil, Undo2 } from "lucide-react";
 import { DashboardRenderer } from "./Renderer";
-import { dashboardSchema, updateKpi } from "./schema";
-import type { DashboardSchema, KpiComponent } from "./schema";
+import { dashboardSchema } from "./schema";
+import type { DashboardSchema } from "./schema";
 import { saveProject } from "./storage";
+import { ComponentForm } from "./ComponentForm";
+import { GlobalForm } from "./GlobalForm";
+import { arrangeComponent, editSnapshot, replaceComponent } from "./editing";
+import { validateFinalization } from "./finalize";
+import type { FinalizeIssue } from "./finalize";
 import rendererCss from "./renderer.css?raw";
 import "./renderer.css";
 import "./workspace.css";
-
-function KpiForm({
-  component,
-  onApply,
-  disabled,
-}: {
-  component: KpiComponent;
-  onApply: (input: { title: string; value: string; unit: string }) => boolean;
-  disabled: boolean;
-}) {
-  const [title, setTitle] = useState(component.title);
-  const [value, setValue] = useState(String(component.value));
-  const [unit, setUnit] = useState(component.unit);
-  const [error, setError] = useState("");
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    if (!title.trim() || !value.trim() || !Number.isFinite(Number(value))) {
-      setError("제목과 올바른 숫자 값을 입력해 주세요.");
-      return;
-    }
-    if (onApply({ title, value, unit })) setError("");
-    else
-      setError(
-        "값을 적용할 수 없습니다. 제목 120자, 단위 12자, 숫자 ±1조 범위를 확인하세요.",
-      );
-  };
-  return (
-    <form className="workspace-form" onSubmit={submit}>
-      <fieldset disabled={disabled}>
-        <legend>KPI 속성</legend>
-        <label htmlFor="kpi-title">제목</label>
-        <input
-          id="kpi-title"
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          maxLength={120}
-          required
-        />
-        <label htmlFor="kpi-value">값</label>
-        <input
-          id="kpi-value"
-          inputMode="decimal"
-          value={value}
-          onChange={(event) => setValue(event.target.value)}
-          required
-        />
-        <label htmlFor="kpi-unit">단위</label>
-        <input
-          id="kpi-unit"
-          value={unit}
-          onChange={(event) => setUnit(event.target.value)}
-          maxLength={12}
-          placeholder="예: 원, %, 명"
-        />
-        <p>변경한 내용은 적용 버튼을 누르면 화면에 반영됩니다.</p>
-        {error && (
-          <p className="form-error" role="alert">
-            {error}
-          </p>
-        )}
-        <button type="submit" className="button primary">
-          변경 적용
-        </button>
-      </fieldset>
-    </form>
-  );
-}
 
 export function Workspace({
   initial,
@@ -85,20 +22,29 @@ export function Workspace({
   onBack: () => void;
   startInPreview?: boolean;
 }) {
-  const [schema, setSchema] = useState(() => dashboardSchema.parse(initial));
+  const [schema, setSchema] = useState(() =>
+    !startInPreview && ["finalized", "exported"].includes(initial.status)
+      ? editSnapshot(initial, {})
+      : dashboardSchema.parse(initial),
+  );
   const [previous, setPrevious] = useState<DashboardSchema | null>(null);
   const [selected, setSelected] = useState(
-    initial.sections
-      .flatMap((section) => section.components)
-      .find((component) => component.type === "kpi")?.id ?? "",
+    initial.sections.flatMap((s) => s.components)[0]?.id ?? "global",
   );
   const [preview, setPreview] = useState(startInPreview);
   const [storageStatus, setStorageStatus] = useState("저장 대기");
   const [exportStatus, setExportStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [unsaved, setUnsaved] = useState(false);
+  const [issues, setIssues] = useState<FinalizeIssue[]>([]);
+  const [finalized, setFinalized] = useState<{
+    schema: DashboardSchema;
+    bytes: Uint8Array;
+  } | null>(null);
+  const [modal, setModal] = useState(false);
+  const dialog = useRef<HTMLDialogElement>(null);
   const lock = useRef(false);
-  const initialRef = useRef(initial);
+  const initialRef = useRef(schema);
   const save = (data: DashboardSchema) => {
     try {
       saveProject(localStorage, data);
@@ -116,57 +62,120 @@ export function Workspace({
   useEffect(() => {
     save(initialRef.current);
   }, []);
-  const apply = (input: { title: string; value: string; unit: string }) => {
+  useEffect(() => {
+    if (modal) dialog.current?.showModal();
+    else if (dialog.current?.open) dialog.current.close();
+  }, [modal]);
+  useEffect(() => {
+    const leave = (event: BeforeUnloadEvent) => {
+      if (unsaved || busy) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", leave);
+    return () => window.removeEventListener("beforeunload", leave);
+  }, [unsaved, busy]);
+  const commit = (next: DashboardSchema) => {
     if (lock.current) return false;
+    setPrevious(schema);
+    setSchema(next);
+    save(next);
+    setFinalized(null);
+    setIssues([]);
+    setExportStatus("");
+    return true;
+  };
+  const patch = (value: Partial<DashboardSchema>) => {
     try {
-      const next = updateKpi(schema, selected, input);
-      setPrevious(schema);
-      setSchema(next);
-      save(next);
-      setExportStatus("");
-      return true;
+      return commit(editSnapshot(schema, value));
     } catch {
       return false;
     }
   };
   const undo = () => {
     if (!previous || lock.current) return;
-    const next = dashboardSchema.parse({
-      ...previous,
-      status: "editing",
-      project: { ...previous.project, updatedAt: new Date().toISOString() },
-    });
+    const next = editSnapshot(previous, {});
     setSchema(next);
     setPrevious(null);
+    setFinalized(null);
     save(next);
     setExportStatus("이전 정상 상태로 복원했습니다.");
   };
-  const download = async () => {
+  const arrange = (action: "up" | "down" | "delete") => {
+    try {
+      commit(arrangeComponent(schema, selected, action));
+      if (action === "delete") setSelected("global");
+    } catch {
+      setExportStatus(
+        "이동 범위 또는 마지막 표시 항목을 확인해 주세요. 현재 작업은 유지됩니다.",
+      );
+    }
+  };
+  const finalize = async () => {
     if (lock.current) return;
     lock.current = true;
     setBusy(true);
-    setExportStatus("Schema 검증 및 ZIP 생성 중…");
+    setModal(true);
+    setIssues([]);
+    setFinalized(null);
+    setExportStatus("구조·데이터·이미지·렌더링·ZIP 생성 검사 중…");
     try {
+      const result = await validateFinalization(schema);
+      if (result.issues.length) {
+        setIssues(result.issues);
+        setExportStatus("검증에 실패했습니다. 항목을 수정해 주세요.");
+        return;
+      }
       const snapshot = dashboardSchema.parse({
-        ...schema,
+        ...result.schema,
         status: "finalized",
       });
+      const { createExportZip } = await import("./export");
+      // Complete rendering and ZIP creation before persisting finalized status.
+      const bytes = await createExportZip(snapshot, rendererCss);
       setSchema(snapshot);
       save(snapshot);
-      const { createExportZip, exportFilename } = await import("./export");
-      const bytes = await createExportZip(snapshot, rendererCss);
+      setFinalized({ schema: snapshot, bytes });
+      setExportStatus(
+        "최종 검증을 통과했습니다. ZIP을 다운로드할 수 있습니다.",
+      );
+    } catch (error) {
+      setIssues([
+        {
+          target: "global",
+          message:
+            error instanceof Error
+              ? error.message
+              : "렌더링 또는 ZIP 검증에 실패했습니다.",
+        },
+      ]);
+      setExportStatus("확정하지 못했습니다. 기존 작업은 유지됩니다.");
+    } finally {
+      lock.current = false;
+      setBusy(false);
+    }
+  };
+  const download = async () => {
+    if (!finalized || lock.current) return;
+    lock.current = true;
+    setBusy(true);
+    try {
+      const { exportFilename } = await import("./export");
       const url = URL.createObjectURL(
-        new Blob([new Uint8Array(bytes)], { type: "application/zip" }),
+        new Blob([new Uint8Array(finalized.bytes)], {
+          type: "application/zip",
+        }),
       );
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = exportFilename(snapshot.project.name);
+      anchor.download = exportFilename(finalized.schema.project.name);
       document.body.append(anchor);
       anchor.click();
       anchor.remove();
       setTimeout(() => URL.revokeObjectURL(url), 30000);
       const exported = dashboardSchema.parse({
-        ...snapshot,
+        ...finalized.schema,
         status: "exported",
       });
       setSchema(exported);
@@ -176,21 +185,27 @@ export function Workspace({
       );
     } catch {
       setExportStatus(
-        "다운로드에 실패했습니다. 현재 작업을 유지했습니다. 다시 시도해 주세요.",
+        "다운로드에 실패했습니다. 확정된 결과로 다시 시도해 주세요.",
       );
     } finally {
       lock.current = false;
       setBusy(false);
     }
   };
-  const kpis = schema.sections
-    .filter((section) => section.visible)
-    .flatMap((section) => section.components)
-    .filter(
-      (component): component is KpiComponent =>
-        component.type === "kpi" && component.visible,
-    );
-  const component = kpis.find((item) => item.id === selected);
+  const enterEditor = (target?: string) => {
+    if (lock.current) return;
+    if (["finalized", "exported"].includes(schema.status)) {
+      const next = editSnapshot(schema, {});
+      setSchema(next);
+      save(next);
+    }
+    setFinalized(null);
+    setPreview(false);
+    setModal(false);
+    if (target) setSelected(target);
+  };
+  const components = schema.sections.flatMap((s) => s.components);
+  const component = components.find((c) => c.id === selected);
   return (
     <main className={`workspace ${preview ? "workspace-preview" : ""}`}>
       <header className="workspace-toolbar">
@@ -225,14 +240,18 @@ export function Workspace({
           <button
             className="button secondary"
             disabled={busy}
-            onClick={() => setPreview((value) => !value)}
+            onClick={() => (preview ? enterEditor() : setPreview(true))}
           >
-            {preview ? <Pencil size={16} /> : <Eye size={16} />}{" "}
+            {preview ? <Pencil size={16} /> : <Eye size={16} />}
             {preview ? "편집으로 돌아가기" : "미리보기"}
           </button>
-          <button className="button primary" disabled={busy} onClick={download}>
+          <button
+            className="button primary"
+            disabled={busy}
+            onClick={() => void finalize()}
+          >
             <Download size={16} />
-            {busy ? "ZIP 생성 중" : "검증 후 ZIP 다운로드"}
+            {busy ? "최종 검증 중" : "확정 및 다운로드"}
           </button>
         </div>
       </header>
@@ -247,22 +266,54 @@ export function Workspace({
         {!preview && (
           <aside className="workspace-tree">
             <h2>컴포넌트</h2>
-            <p>KPI를 선택해 제목과 값을 바꾸세요.</p>
-            {kpis.map((item) => (
-              <button
-                key={item.id}
-                disabled={busy}
-                className={item.id === selected ? "active" : ""}
-                aria-pressed={item.id === selected}
-                onClick={() => setSelected(item.id)}
-              >
-                {item.title}
-              </button>
+            <p>항목을 선택해 내용과 데이터를 편집하세요.</p>
+            <button
+              className={selected === "global" ? "active" : ""}
+              onClick={() => setSelected("global")}
+              disabled={busy}
+            >
+              전체 설정
+            </button>
+            <button
+              className={selected === "visual" ? "active" : ""}
+              onClick={() => setSelected("visual")}
+              disabled={busy}
+            >
+              메인 비주얼
+            </button>
+            {schema.sections.map((section) => (
+              <details key={section.id} open>
+                <summary>
+                  {section.title}
+                  {section.visible ? "" : " · 숨김"}
+                </summary>
+                {section.components.map((item) => (
+                  <button
+                    key={item.id}
+                    disabled={busy}
+                    className={item.id === selected ? "active" : ""}
+                    aria-pressed={item.id === selected}
+                    onClick={() => setSelected(item.id)}
+                  >
+                    {item.title}
+                    {item.visible ? "" : " · 숨김"}
+                  </button>
+                ))}
+              </details>
             ))}
-            <div className="workspace-hint">
-              차트·테이블은 Schema에서 표시됩니다. 속성 편집은 다음 단계에서
-              확장합니다.
-            </div>
+            {component && (
+              <div className="tree-actions">
+                <button disabled={busy} onClick={() => arrange("up")}>
+                  위로
+                </button>
+                <button disabled={busy} onClick={() => arrange("down")}>
+                  아래로
+                </button>
+                <button disabled={busy} onClick={() => arrange("delete")}>
+                  삭제
+                </button>
+              </div>
+            )}
           </aside>
         )}
         <div
@@ -278,23 +329,112 @@ export function Workspace({
         </div>
         {!preview && (
           <aside className="workspace-properties">
-            {component ? (
-              <KpiForm
-                key={`${component.id}-${component.title}-${component.value}-${component.unit}`}
-                component={component}
-                onApply={apply}
+            {selected === "global" || selected === "visual" ? (
+              <GlobalForm
+                key={`${selected}-${schema.project.updatedAt}`}
+                schema={schema}
+                mode={selected}
+                onApply={patch}
                 disabled={busy}
               />
+            ) : component ? (
+              <ComponentForm
+                key={JSON.stringify(component)}
+                component={component}
+                disabled={busy}
+                onApply={(value) => {
+                  try {
+                    return commit(replaceComponent(schema, value));
+                  } catch {
+                    return false;
+                  }
+                }}
+              />
             ) : (
-              <p>편집할 KPI가 없습니다.</p>
+              <p>편집할 항목을 선택하세요.</p>
             )}
             <div className="workspace-hint">
-              현재 브라우저에 변경 내용을 저장합니다. 브라우저 데이터를 삭제하면
-              복구할 수 없습니다.
+              변경은 이 브라우저에 저장됩니다. 브라우저 데이터를 삭제하면 복구할
+              수 없습니다.
             </div>
           </aside>
         )}
       </div>
+      <dialog
+        ref={dialog}
+        className="finalize-dialog"
+        aria-labelledby="finalize-title"
+        onCancel={(e) => {
+          if (busy) e.preventDefault();
+          else setModal(false);
+        }}
+      >
+        <h2 id="finalize-title">대시보드 최종 검증</h2>
+        <p>구조 · 필수값 · 차트/표 데이터 · 이미지 · 렌더링 · ZIP 파일</p>
+        {busy ? (
+          <p role="status">검사 중입니다…</p>
+        ) : issues.length ? (
+          <ul>
+            {issues.map((issue, i) => (
+              <li key={i}>
+                <p role="alert">{issue.message}</p>
+                <button
+                  onClick={() =>
+                    enterEditor(
+                      issue.target === "visual"
+                        ? "visual"
+                        : components.some((c) => c.id === issue.target)
+                          ? issue.target
+                          : "global",
+                    )
+                  }
+                >
+                  수정하기
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : finalized ? (
+          <>
+            <p className="finalize-success">모든 검사를 통과했습니다.</p>
+            <p>
+              {finalized.schema.project.name} ·{" "}
+              {(finalized.bytes.length / 1024).toFixed(1)} KB
+            </p>
+            <p>
+              샘플 데이터가 포함된 PC 대시보드입니다. 압축을 풀어 index.html을
+              여세요.
+            </p>
+          </>
+        ) : null}
+        <div className="generation-actions">
+          <button
+            className="button secondary"
+            disabled={busy}
+            onClick={() => setModal(false)}
+          >
+            닫기
+          </button>
+          {finalized && (
+            <button
+              className="button primary"
+              disabled={busy}
+              onClick={() => void download()}
+            >
+              ZIP 다운로드
+            </button>
+          )}
+          {issues.length > 0 && (
+            <button
+              className="button primary"
+              disabled={busy}
+              onClick={() => void finalize()}
+            >
+              다시 검사
+            </button>
+          )}
+        </div>
+      </dialog>
     </main>
   );
 }

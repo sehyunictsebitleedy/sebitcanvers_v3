@@ -75,16 +75,31 @@ function readDrafts(): Draft[] {
   try {
     const value: unknown = JSON.parse(localStorage.getItem(storageKey) || "[]");
     return Array.isArray(value)
-      ? value.filter(
-          (item): item is Draft =>
-            !!item &&
-            typeof item.id === "string" &&
-            typeof item.name === "string" &&
-            typeof item.date === "string" &&
-            Number.isInteger(item.type) &&
-            item.type >= 0 &&
-            item.type <= 4,
-        )
+      ? value
+          .filter(
+            (item): item is Draft =>
+              !!item &&
+              typeof item.id === "string" &&
+              typeof item.name === "string" &&
+              typeof item.date === "string" &&
+              Number.isInteger(item.type) &&
+              item.type >= 0 &&
+              item.type <= 4,
+          )
+          .map((item) => {
+            try {
+              const saved = loadProject(localStorage, item.id);
+              return saved
+                ? {
+                    ...item,
+                    name: saved.project.name,
+                    date: saved.project.updatedAt,
+                  }
+                : item;
+            } catch {
+              return item;
+            }
+          })
       : [];
   } catch {
     return [];
@@ -168,6 +183,7 @@ function App() {
     };
   }, []);
   const home = () => {
+    setDrafts(readDrafts());
     setCreating(false);
     setWorkspace(null);
     window.history.pushState(null, "", "#");

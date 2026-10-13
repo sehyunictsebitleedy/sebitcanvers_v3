@@ -395,7 +395,7 @@ export function DashboardRenderer({
                       gridColumn: `span ${component.layout.columnSpan}`,
                     }}
                   >
-                    {onSelect && component.type === "kpi" && (
+                    {onSelect && (
                       <button
                         className="db-select"
                         onClick={() => onSelect(component.id)}

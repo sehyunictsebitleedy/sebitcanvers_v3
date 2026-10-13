@@ -14,13 +14,15 @@ test("workspace applies KPI edits, rejects invalid input, undoes, previews and p
     window: dom.window,
     document: dom.window.document,
     HTMLElement: dom.window.HTMLElement,
+    cancelAnimationFrame: () => {},
     localStorage: dom.window.localStorage,
     IS_REACT_ACT_ENVIRONMENT: true,
   });
   const { render, screen, fireEvent, cleanup, waitFor, within } =
     await import("@testing-library/react");
   const server = await createServer({
-    server: { middlewareMode: true, hmr: { port: 0 } },
+    cacheDir: "node_modules/.vite-test-workspace",
+    server: { middlewareMode: true, ws: { port: 24680 } },
     appType: "custom",
   });
   try {
