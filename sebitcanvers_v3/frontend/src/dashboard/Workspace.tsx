@@ -9,6 +9,7 @@ import { GlobalForm } from "./GlobalForm";
 import { arrangeComponent, editSnapshot, replaceComponent } from "./editing";
 import { validateFinalization } from "./finalize";
 import type { FinalizeIssue } from "./finalize";
+import { AiEditDrawer } from "./AiEditDrawer";
 import rendererCss from "./renderer.css?raw";
 import "./renderer.css";
 import "./workspace.css";
@@ -42,6 +43,12 @@ export function Workspace({
     bytes: Uint8Array;
   } | null>(null);
   const [modal, setModal] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
+  const latestSchema = useRef(schema);
+  useEffect(() => {
+    latestSchema.current = schema;
+  }, [schema]);
   const dialog = useRef<HTMLDialogElement>(null);
   const lock = useRef(false);
   const initialRef = useRef(schema);
@@ -76,8 +83,8 @@ export function Workspace({
     window.addEventListener("beforeunload", leave);
     return () => window.removeEventListener("beforeunload", leave);
   }, [unsaved, busy]);
-  const commit = (next: DashboardSchema) => {
-    if (lock.current) return false;
+  const commit = (next: DashboardSchema, fromAi = false) => {
+    if (lock.current && !fromAi) return false;
     setPrevious(schema);
     setSchema(next);
     save(next);
@@ -231,6 +238,13 @@ export function Workspace({
         <div className="workspace-actions">
           <button
             className="button secondary"
+            disabled={busy}
+            onClick={() => setAiOpen(true)}
+          >
+            AI 수정
+          </button>
+          <button
+            className="button secondary"
             disabled={!previous || busy}
             onClick={undo}
           >
@@ -251,7 +265,11 @@ export function Workspace({
             onClick={() => void finalize()}
           >
             <Download size={16} />
-            {busy ? "최종 검증 중" : "확정 및 다운로드"}
+            {busy
+              ? aiBusy
+                ? "AI 수정 중"
+                : "최종 검증 중"
+              : "확정 및 다운로드"}
           </button>
         </div>
       </header>
@@ -360,6 +378,24 @@ export function Workspace({
           </aside>
         )}
       </div>
+      {aiOpen && (
+        <AiEditDrawer
+          schema={schema}
+          selectedId={selected}
+          onClose={() => setAiOpen(false)}
+          onBusy={(value) => {
+            lock.current = value;
+            setBusy(value);
+            setAiBusy(value);
+          }}
+          onApply={(base, next) => {
+            if (latestSchema.current !== base) return false;
+            return commit(next, true);
+          }}
+          onUndo={undo}
+          canUndo={!!previous}
+        />
+      )}
       <dialog
         ref={dialog}
         className="finalize-dialog"

@@ -115,7 +115,8 @@ Create의 8개 옵션, 우측 설정 요약, 조건 자동 저장·복원과 샘
 AI 생성 API와 Generating, 현재 5개 컴포넌트의 CMS 편집 및 Finalize/Download 화면을 연결했습니다.
 AI 생성에는 서버의 API Key·모델 설정이 필요하며 추가 요청을 생성에 전달합니다.
 기본 샘플 미리보기는 별도로 제공하고 추가 요청을 반영하지 않습니다.
-AI Edit/Patch와 0.1 Schema 외의 전체 V1 Component Library는 후속 범위입니다.
+AI Edit/Patch와 변경 요약·1단계 Undo를 연결했습니다. 실제 AI 생성·수정 호출은 키·모델 설정 후 검수가 필요합니다.
+0.1 Schema 외의 전체 V1 Component Library는 후속 범위입니다.
 [생성·CMS·Finalize 실행 및 검수 문서](docs/GENERATION_CMS_FINALIZE.md)를 참고하세요.
 [Create 구현 문서](docs/CREATE_IMPLEMENTATION.md), [엔진 구현 문서](docs/DASHBOARD_ENGINE.md)와
 [Home 구현 문서](docs/HOME_IMPLEMENTATION.md)를 참고하세요.
@@ -134,6 +135,19 @@ AI Edit/Patch와 0.1 Schema 외의 전체 V1 Component Library는 후속 범위�
 서비스의 다크 디자인 기준은 유지하며, 현재 엔진 계약은 전체 V1 이전의 `0.1`입니다.
 
 ## 수정 내역
+
+### 2026-10-16 — AI 수정 Patch와 변경 요약·Undo
+
+- 최신 작업 커밋 `bb809ac`에서 `feat/ai-edit-patches` 브랜치를 생성했습니다.
+- 실제 생성 검수는 서버 키·모델 미설정(`ready: false`)을 확인하여 설정 대기로 기록했습니다.
+- `/api/edit`에 최신 Schema·자연어 요청·기준 Revision을 전달해 허용된 Patch만 생성·검증합니다.
+- 속성 수정, 컴포넌트 추가·삭제·이동, 테마·Header·Navigation·Main Visual 변경을 지원합니다.
+- Preview/CMS의 우측 AI 수정 패널에 범위 선택·요청·처리 상태·취소·오류·변경 요약·실행 취소를 연결했습니다.
+- 수정 중 중복/충돌 작업을 잠그고 실패·취소·오래된 응답은 적용하지 않습니다.
+  적용 후 CMS 수정값을 보존하며 확정을 해제해 재검증을 요구합니다.
+- 검증: 프론트엔드 23개, 백엔드 8개, Chromium E2E 8개 및 빌드·린트·타입 검사.
+- 실제 생성 4개 유형과 AI 수정 1건을 검수할 `backend`의 `npm.cmd run test:live`를 추가했습니다.
+  실행 조건과 사용법은 [AI 수정 구현 문서](docs/AI_EDIT_IMPLEMENTATION.md)를 참고하세요.
 
 ### 2026-10-13 — Create 검수 및 AI 생성·CMS·Finalize
 
@@ -220,3 +234,4 @@ npm.cmd run test:e2e
 - [Dashboard 엔진 구현](docs/DASHBOARD_ENGINE.md): Schema 계약, 편집·저장·Export 및 테스트
 - [Create 화면 구현](docs/CREATE_IMPLEMENTATION.md): 옵션, 요약, 저장·복원, 이미지 및 샘플 연결
 - [AI 생성·CMS·Finalize](docs/GENERATION_CMS_FINALIZE.md): 백엔드 환경변수·실행, 편집·확정·다운로드와 검수
+- [AI 수정 구현](docs/AI_EDIT_IMPLEMENTATION.md): Patch 계약, 수정 패널·요약·Undo, 실제 AI 검수 재개 방법

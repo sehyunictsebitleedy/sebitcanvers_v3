@@ -348,3 +348,89 @@
 .data-editor button {
   margin-right: 10px;
 }
+.ai-edit-drawer {
+  margin: 76px 0 0 auto;
+  width: 410px;
+  height: calc(100dvh - 76px);
+  max-height: none;
+  max-width: 100%;
+  padding: 26px;
+  border: 0;
+  border-left: 1px solid #3c4a62;
+  background: #111927;
+  color: #eef2fa;
+  overflow: auto;
+}
+.ai-edit-drawer::backdrop {
+  background: #04081270;
+}
+.ai-edit-drawer header > span {
+  color: #b9a0fa;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+.ai-edit-drawer h2 {
+  font-size: 24px;
+  margin: 16px 0;
+}
+.ai-edit-drawer p,
+.ai-edit-drawer li {
+  font-size: 13px;
+  line-height: 1.8;
+  color: #b7c3d8;
+}
+.ai-edit-drawer fieldset {
+  border: 0;
+  padding: 0;
+  margin: 24px 0;
+  min-width: 0;
+}
+.ai-edit-drawer label {
+  display: block;
+  margin: 18px 0 10px;
+  font-size: 13px;
+}
+.ai-edit-drawer select,
+.ai-edit-drawer textarea {
+  width: 100%;
+  background: #0c1320;
+  color: #eef2fa;
+  border: 1px solid #43516a;
+  border-radius: 8px;
+  padding: 12px;
+  font: inherit;
+  font-size: 13px;
+}
+.ai-edit-drawer textarea {
+  resize: vertical;
+  min-height: 160px;
+}
+.ai-edit-drawer small {
+  display: block;
+  margin-top: 8px;
+  color: #a5b3cb;
+  font-size: 11px;
+  line-height: 1.8;
+}
+.ai-edit-drawer form .button {
+  width: 100%;
+}
+.ai-edit-drawer section {
+  border-top: 1px solid #303d51;
+  margin-top: 24px;
+  padding-top: 18px;
+}
+.ai-edit-drawer h3 {
+  font-size: 15px;
+}
+.ai-edit-drawer ul {
+  padding-left: 18px;
+}
+.ai-edit-drawer footer {
+  display: flex;
+  gap: 10px;
+  margin-top: 28px;
+}
+.ai-edit-drawer .form-error {
+  color: #ffb8c4;
+}

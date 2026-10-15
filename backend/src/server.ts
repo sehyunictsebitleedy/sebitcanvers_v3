@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { ZodError } from "zod";
 import { ApiError, generate, openAIProvider } from "./generate";
 import type { Provider } from "./generate";
+import { editDashboard } from "./edit";
 
 export type Config = {
   key: string;
@@ -14,12 +15,12 @@ export type Config = {
   concurrency: number;
   maintenance: boolean;
 };
-async function body(req: IncomingMessage) {
+async function body(req: IncomingMessage, limit: number) {
   const chunks: Buffer[] = [];
   let size = 0;
   for await (const chunk of req) {
     size += chunk.length;
-    if (size > 32000)
+    if (size > limit)
       throw new ApiError(413, "TOO_LARGE", "요청 크기가 너무 큽니다.");
     chunks.push(chunk);
   }
@@ -50,7 +51,8 @@ export function createApi(config: Config, provider?: Provider) {
       });
       return;
     }
-    if (req.url !== "/api/generate" || req.method !== "POST") {
+    const isEdit = req.url === "/api/edit";
+    if ((!isEdit && req.url !== "/api/generate") || req.method !== "POST") {
       send(404, { error: "요청 경로를 찾을 수 없습니다." });
       return;
     }
@@ -77,16 +79,12 @@ export function createApi(config: Config, provider?: Provider) {
       if (!req.headers["content-type"]?.startsWith("application/json"))
         throw new ApiError(415, "CONTENT_TYPE", "JSON 요청만 지원합니다.");
       if (config.maintenance)
-        throw new ApiError(
-          503,
-          "MAINTENANCE",
-          "AI 생성 서비스를 점검 중입니다.",
-        );
+        throw new ApiError(503, "MAINTENANCE", "AI 서비스를 점검 중입니다.");
       if (!provider && (!config.key || !config.model))
         throw new ApiError(
           503,
           "NOT_CONFIGURED",
-          "AI 생성 서버 설정이 필요합니다. 샘플 미리보기를 이용할 수 있습니다.",
+          "AI 서버 설정이 필요합니다. 샘플 미리보기와 직접 편집을 이용할 수 있습니다.",
         );
       const now = Date.now();
       for (const [key, value] of clients)
@@ -106,8 +104,8 @@ export function createApi(config: Config, provider?: Provider) {
       clients.set(ip, client);
       active++;
       counted = true;
-      const input = await body(req);
-      const result = await generate(
+      const input = await body(req, isEdit ? 512000 : 32000);
+      const result = await (isEdit ? editDashboard : generate)(
         input,
         provider ?? openAIProvider(config),
         controller.signal,
@@ -116,7 +114,7 @@ export function createApi(config: Config, provider?: Provider) {
       console.info(
         JSON.stringify({
           requestId,
-          event: "generate",
+          event: isEdit ? "edit" : "generate",
           ok: true,
           repaired: result.repaired,
           ms: Date.now() - started,
@@ -136,7 +134,9 @@ export function createApi(config: Config, provider?: Provider) {
             : new ApiError(
                 502,
                 "GENERATION_FAILED",
-                "대시보드를 생성하지 못했습니다. 다시 시도해 주세요.",
+                isEdit
+                  ? "AI 수정에 실패했습니다. 기존 작업은 유지됩니다. 다시 시도해 주세요."
+                  : "대시보드를 생성하지 못했습니다. 다시 시도해 주세요.",
               );
       send(failure.status, {
         error: failure.message,
@@ -146,7 +146,7 @@ export function createApi(config: Config, provider?: Provider) {
       console.info(
         JSON.stringify({
           requestId,
-          event: "generate",
+          event: isEdit ? "edit" : "generate",
           ok: false,
           code: failure.code,
           ms: Date.now() - started,

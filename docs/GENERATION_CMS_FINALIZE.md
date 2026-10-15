@@ -1,5 +1,8 @@
 # 생성 API · CMS · Finalize 구현
 
+> 2026-10-16 후속 구현: AI 수정 Patch·우측 패널·변경 요약·Undo를 연결했습니다.
+> 최신 검수 상태와 사용법은 [AI 수정 문서](AI_EDIT_IMPLEMENTATION.md)를 참고하세요.
+
 2026-10-13, 작업 브랜치 `feat/ai-generation-cms-finalize`.
 최신 Create 브랜치의 `6edb415`에서 시작했습니다. CRM은 제외하며 분석·관리자·프로젝트·모니터링 4개 유형을 유지합니다.
 
