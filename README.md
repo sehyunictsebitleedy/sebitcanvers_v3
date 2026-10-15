@@ -139,6 +139,7 @@ AI Edit/Patch와 변경 요약·1단계 Undo를 연결했습니다. 실제 AI �
 ### 2026-10-16 — AI 수정 Patch와 변경 요약·Undo
 
 - 최신 작업 커밋 `bb809ac`에서 `feat/ai-edit-patches` 브랜치를 생성했습니다.
+- AI 수정 기능 구현 커밋: `fb544b2`.
 - 실제 생성 검수는 서버 키·모델 미설정(`ready: false`)을 확인하여 설정 대기로 기록했습니다.
 - `/api/edit`에 최신 Schema·자연어 요청·기준 Revision을 전달해 허용된 Patch만 생성·검증합니다.
 - 속성 수정, 컴포넌트 추가·삭제·이동, 테마·Header·Navigation·Main Visual 변경을 지원합니다.
@@ -148,6 +149,12 @@ AI Edit/Patch와 변경 요약·1단계 Undo를 연결했습니다. 실제 AI �
 - 검증: 프론트엔드 23개, 백엔드 8개, Chromium E2E 8개 및 빌드·린트·타입 검사.
 - 실제 생성 4개 유형과 AI 수정 1건을 검수할 `backend`의 `npm.cmd run test:live`를 추가했습니다.
   실행 조건과 사용법은 [AI 수정 구현 문서](docs/AI_EDIT_IMPLEMENTATION.md)를 참고하세요.
+
+다음 작업은 로컬 `backend/.env`에 `OPENAI_API_KEY`·`OPENAI_MODEL`을 설정한 뒤
+백엔드를 재시작하고 실제 생성·수정 검수를 진행하는 것입니다. `APP_ORIGIN`은 실제 접속 주소와 맞춥니다.
+`backend`에서 `npm.cmd run test:live`로 검수한 후, 브라우저에서
+AI 생성 → AI 수정 → CMS 추가 편집 → Undo → Finalize → ZIP 다운로드를 확인합니다.
+현재 통과한 39개 자동 테스트의 AI 응답은 테스트 대역이며 실제 제공업체 호출 검수는 아직 완료하지 않았습니다.
 
 ### 2026-10-13 — Create 검수 및 AI 생성·CMS·Finalize
 
