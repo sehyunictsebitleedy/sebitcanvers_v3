@@ -71,6 +71,24 @@ const types = [
 ];
 type Draft = { id: string; name: string; type: number; date: string };
 const storageKey = "sebit-canvers-drafts-v1";
+const workspaceUrl = (id: string) => `#workspace/${encodeURIComponent(id)}`;
+function restoreWorkspace() {
+  const hash = window.location.hash;
+  if (hash !== "#workspace" && !hash.startsWith("#workspace/"))
+    return { schema: null, notice: "" };
+  try {
+    const id = decodeURIComponent(hash.slice("#workspace/".length));
+    if (!id) throw new Error("Missing project ID");
+    const schema = loadProject(localStorage, id);
+    if (!schema) throw new Error("Missing project");
+    return { schema, notice: "" };
+  } catch {
+    return {
+      schema: null,
+      notice: "열려 있던 프로젝트를 복원할 수 없습니다. 저장 데이터는 변경하지 않았습니다. 최근 작업에서 프로젝트를 다시 선택해 주세요.",
+    };
+  }
+}
 function readDrafts(): Draft[] {
   try {
     const value: unknown = JSON.parse(localStorage.getItem(storageKey) || "[]");
@@ -144,11 +162,12 @@ const features = [
   },
 ];
 function App() {
+  const [restored] = useState(restoreWorkspace);
   const [creating, setCreating] = useState(
     () => typeof window !== "undefined" && window.location.hash === "#create",
   );
   const [initialType, setInitialType] = useState<number | undefined>();
-  const [workspace, setWorkspace] = useState<DashboardSchema | null>(null);
+  const [workspace, setWorkspace] = useState<DashboardSchema | null>(restored.schema);
   const [year] = useState(() => new Date().getFullYear());
   const [drafts, setDrafts] = useState<Draft[]>(readDrafts);
   // Keep legacy records in storage, but only expose supported dashboard types.
@@ -157,7 +176,7 @@ function App() {
   );
   const [modal, setModal] = useState<"preview" | null>(null);
   const [selected, setSelected] = useState(0);
-  const [notice, setNotice] = useState("");
+  const [notice, setNotice] = useState(restored.notice);
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     if (!modal) return;
@@ -174,7 +193,10 @@ function App() {
     const sync = () => {
       setInitialType(undefined);
       setCreating(window.location.hash === "#create");
-      if (window.location.hash !== "#workspace") setWorkspace(null);
+      const next = restoreWorkspace();
+      setWorkspace(next.schema);
+      setNotice(next.notice);
+      setDrafts(readDrafts());
     };
     window.addEventListener("popstate", sync);
     window.addEventListener("hashchange", sync);
@@ -191,6 +213,7 @@ function App() {
   };
   const openCreate = (type?: number) => {
     close();
+    setWorkspace(null);
     setInitialType(type);
     setCreating(true);
     window.history.pushState(null, "", "#create");
@@ -215,7 +238,7 @@ function App() {
       close();
       setWorkspace(dashboardSchema.parse(sample));
       setCreating(false);
-      window.history.pushState(null, "", "#workspace");
+      window.history.pushState(null, "", workspaceUrl(sample.project.id));
     } catch {
       setNotice(
         "저장된 프로젝트를 복원할 수 없습니다. 기존 데이터는 유지했습니다. 새 프로젝트로 시작해 주세요.",
@@ -246,7 +269,7 @@ function App() {
     }
     setCreating(false);
     setWorkspace(schema);
-    window.history.pushState(null, "", "#workspace");
+    window.history.pushState(null, "", workspaceUrl(schema.project.id));
   };
   if (workspace)
     return (
@@ -258,10 +281,12 @@ function App() {
         }
       >
         <Workspace
+          key={workspace.project.id}
           initial={workspace}
           onBack={home}
           startInPreview={
-            workspace.status === "generated" && !!workspace.settings.selections
+            (workspace.status === "generated" && !!workspace.settings.selections) ||
+            workspace.status === "finalized" || workspace.status === "exported"
           }
         />
       </Suspense>
