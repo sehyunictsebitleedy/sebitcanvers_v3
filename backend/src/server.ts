@@ -10,6 +10,7 @@ export type Config = {
   key: string;
   model: string;
   origin: string;
+  allowedOrigins?: string[];
   timeout: number;
   rateLimit: number;
   concurrency: number;
@@ -74,8 +75,8 @@ export function createApi(config: Config, provider?: Provider) {
       }
     }, config.timeout);
     try {
-      if (req.headers.origin && req.headers.origin !== config.origin)
-        throw new ApiError(403, "ORIGIN", "허용되지 않은 요청입니다.");
+      if (req.headers.origin && ![config.origin, ...(config.allowedOrigins ?? [])].includes(req.headers.origin))
+        throw new ApiError(403, "ORIGIN", "현재 접속 주소가 서버에 허용되지 않았습니다. APP_ORIGIN 또는 APP_ALLOWED_ORIGINS 설정을 확인한 뒤 서버를 재시작해 주세요.");
       if (!req.headers["content-type"]?.startsWith("application/json"))
         throw new ApiError(415, "CONTENT_TYPE", "JSON 요청만 지원합니다.");
       if (config.maintenance)

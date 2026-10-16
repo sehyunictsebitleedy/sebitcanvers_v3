@@ -58,7 +58,9 @@ Patch는 최대 20개 action을 포함합니다. 임의 JSON 경로·코드 실�
 
 `backend/.env.example`을 참고하여 `.env`에 키와 모델을 로컬에서 설정합니다.
 `APP_ORIGIN`은 실제 접속 주소와 정확히 같아야 합니다. 기본 `http://localhost:5173`과
-`http://127.0.0.1:5173`은 서로 다른 출처입니다. 기존 백엔드는 설정 후 재시작해야 합니다.
+`http://127.0.0.1:5173`은 서로 다른 출처입니다. 추가 주소는 `APP_ALLOWED_ORIGINS`에 쉼표로 구분해 등록합니다.
+예: `APP_ALLOWED_ORIGINS=http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174`.
+등록하지 않은 출처는 차단합니다. 기존 백엔드는 설정 후 재시작해야 합니다.
 
 ```powershell
 cd backend

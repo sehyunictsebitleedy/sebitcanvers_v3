@@ -10,6 +10,7 @@ createApi({
   key: process.env.OPENAI_API_KEY ?? "",
   model: process.env.OPENAI_MODEL ?? "",
   origin: process.env.APP_ORIGIN ?? "http://localhost:5173",
+  allowedOrigins: (process.env.APP_ALLOWED_ORIGINS ?? '').split(',').map(value=>value.trim()).filter(Boolean),
   timeout: integer("AI_TIMEOUT_MS", 60000, 120000),
   rateLimit: integer("AI_RATE_LIMIT", 5, 100),
   concurrency: integer("AI_CONCURRENCY", 2, 10),
