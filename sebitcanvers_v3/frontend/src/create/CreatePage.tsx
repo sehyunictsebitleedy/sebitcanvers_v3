@@ -128,14 +128,18 @@ function readInitial(type?: number) {
 }
 export function CreatePage({
   initialType,
+  initialOptions,
   onHome,
   onStart,
 }: {
   initialType?: number;
+  initialOptions?: CreateOptions;
   onHome: () => void;
   onStart: (schema: DashboardSchema) => void;
 }) {
-  const [initial] = useState(() => readInitial(initialType));
+  const [initial] = useState(() => initialOptions
+    ? { options: initialOptions, error: "", restored: true }
+    : readInitial(initialType));
   const [options, setOptions] = useState<CreateOptions>(initial.options);
   const [blocked, setBlocked] = useState(!!initial.error);
   const [storageStatus, setStorageStatus] = useState(
@@ -271,6 +275,7 @@ export function CreatePage({
       setIssues(validation.error.issues.map((issue) => issue.message));
       return;
     }
+    if (initialOptions && !window.confirm("현재 디자인을 새 결과로 교체할까요? 기존 디자인은 1개 백업되며 복원할 수 있습니다.")) return;
     lock.current = true;
     setBusy(true);
     setIssues([]);
@@ -393,13 +398,13 @@ export function CreatePage({
     <main className="create-page container" id="main">
       <button className="create-back" onClick={onHome}>
         <ArrowLeft size={15} />
-        홈으로
+        {initialOptions ? "기존 디자인으로 돌아가기" : "홈으로"}
       </button>
       <div className="create-heading">
         <div>
           <span className="create-eyebrow">DASHBOARD BUILDER</span>
           <h1 ref={heading} tabIndex={-1}>
-            어떤 대시보드를 만들까요?
+            {initialOptions ? "대시보드 재생성" : "어떤 대시보드를 만들까요?"}
           </h1>
           <p>
             업무에 맞는 구성과 스타일을 선택하세요. 나머지는 화면에서 확인할 수

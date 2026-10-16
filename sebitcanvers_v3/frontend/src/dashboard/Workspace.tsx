@@ -3,7 +3,9 @@ import { ArrowLeft, Download, Eye, Pencil, Undo2 } from "lucide-react";
 import { DashboardRenderer } from "./Renderer";
 import { dashboardSchema } from "./schema";
 import type { DashboardSchema } from "./schema";
-import { saveProject } from "./storage";
+import { loadBackup, replaceProject, saveProject } from "./storage";
+import { CreatePage } from "../create/CreatePage";
+import { dashboardTypes, defaultOptions } from "../create/contracts";
 import { ComponentForm } from "./ComponentForm";
 import { GlobalForm } from "./GlobalForm";
 import { arrangeComponent, editSnapshot, replaceComponent } from "./editing";
@@ -29,6 +31,11 @@ export function Workspace({
       : dashboardSchema.parse(initial),
   );
   const [previous, setPrevious] = useState<DashboardSchema | null>(null);
+  const [regenerating, setRegenerating] = useState(false);
+  const [hasBackup, setHasBackup] = useState(() => {
+    try { return !!loadBackup(localStorage, initial.project.id); }
+    catch { return false; }
+  });
   const [selected, setSelected] = useState(
     initial.sections.flatMap((s) => s.components)[0]?.id ?? "global",
   );
@@ -213,6 +220,33 @@ export function Workspace({
   };
   const components = schema.sections.flatMap((s) => s.components);
   const component = components.find((c) => c.id === selected);
+  const acceptReplacement = (next: DashboardSchema) => {
+    setSchema(next);
+    setPrevious(null);
+    setSelected("global");
+    setFinalized(null);
+    setIssues([]);
+    setPreview(true);
+    setUnsaved(false);
+    setStorageStatus("브라우저에 저장됨");
+    setHasBackup(true);
+  };
+  if (regenerating) return (
+    <CreatePage
+      initialOptions={{ ...(schema.settings.selections ?? defaultOptions(dashboardTypes.find(type => type.key === schema.project.type)?.id)), name: schema.project.name }}
+      onHome={() => setRegenerating(false)}
+      onStart={(generated) => {
+        try {
+          const next = replaceProject(localStorage, schema, generated);
+          acceptReplacement(next);
+          setRegenerating(false);
+          setExportStatus("재생성 완료 · 이전 디자인을 복원할 수 있습니다.");
+        } catch {
+          throw new Error("백업 또는 저장에 실패했습니다. 기존 디자인은 유지됩니다. 브라우저 저장 공간을 확인하세요.");
+        }
+      }}
+    />
+  );
   return (
     <main className={`workspace ${preview ? "workspace-preview" : ""}`}>
       <header className="workspace-toolbar">
@@ -278,6 +312,18 @@ export function Workspace({
         <button onClick={() => save(schema)} disabled={busy}>
           다시 저장
         </button>
+        <button disabled={busy} onClick={() => setRegenerating(true)}>재생성</button>
+        <button disabled={busy || !hasBackup} onClick={() => {
+          if (!window.confirm("백업된 디자인으로 복원할까요? 현재 디자인은 새 백업으로 보관됩니다.")) return;
+          try {
+            const backup = loadBackup(localStorage, schema.project.id);
+            if (!backup) throw new Error("missing backup");
+            acceptReplacement(replaceProject(localStorage, schema, editSnapshot(backup, {})));
+            setExportStatus("이전 디자인으로 복원했습니다. 다운로드하려면 다시 확정하세요.");
+          } catch {
+            setExportStatus("백업을 복원하지 못했습니다. 현재 디자인은 유지됩니다.");
+          }
+        }}>이전 디자인 복원</button>
         <span role="status">{exportStatus}</span>
       </div>
       <div className="workspace-layout">

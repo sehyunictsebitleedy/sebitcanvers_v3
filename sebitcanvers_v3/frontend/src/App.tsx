@@ -93,6 +93,7 @@ function readDrafts(): Draft[] {
                 ? {
                     ...item,
                     name: saved.project.name,
+                      type: ({ analytics: 0, admin: 1, project: 3, monitoring: 4 })[saved.project.type],
                     date: saved.project.updatedAt,
                   }
                 : item;
