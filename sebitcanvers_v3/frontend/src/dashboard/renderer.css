@@ -117,7 +117,7 @@
   color: var(--db-muted);
   margin-left: 5px;
 }
-.schema-dashboard .db-chart {
+.schema-dashboard svg.db-chart {
   width: 100%;
   height: 230px;
   display: block;
@@ -159,8 +159,9 @@
 }
 .schema-dashboard .db-donut-layout > svg {
   display: block;
-  width: 210px;
-  height: 210px;
+  width: 180px;
+  height: auto;
+  aspect-ratio: 1;
   max-width: 100%;
   margin: auto;
 }
