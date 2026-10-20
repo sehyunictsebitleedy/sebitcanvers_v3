@@ -425,3 +425,12 @@
   outline: 3px solid var(--db-text);
   outline-offset: 3px;
 }
+.schema-dashboard .db-summary-content {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.schema-dashboard .db-summary-description {
+  color: var(--db-muted);
+  white-space: pre-wrap;
+  line-height: 1.6;
+}

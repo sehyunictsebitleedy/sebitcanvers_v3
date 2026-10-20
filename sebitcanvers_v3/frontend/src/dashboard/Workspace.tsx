@@ -8,7 +8,7 @@ import { CreatePage } from "../create/CreatePage";
 import { dashboardTypes, defaultOptions } from "../create/contracts";
 import { ComponentForm } from "./ComponentForm";
 import { GlobalForm } from "./GlobalForm";
-import { arrangeComponent, editSnapshot, replaceComponent } from "./editing";
+import { addSummary, arrangeComponent, editSnapshot, replaceComponent } from "./editing";
 import { validateFinalization } from "./finalize";
 import type { FinalizeIssue } from "./finalize";
 import { AiEditDrawer } from "./AiEditDrawer";
@@ -331,6 +331,14 @@ export function Workspace({
           <aside className="workspace-tree">
             <h2>컴포넌트</h2>
             <p>항목을 선택해 내용과 데이터를 편집하세요.</p>
+            <button disabled={busy} onClick={() => {
+              try {
+                const id = crypto.randomUUID();
+                if (commit(addSummary(schema, id))) setSelected(id);
+              } catch (error) {
+                setExportStatus(error instanceof Error ? error.message : "요약 카드를 추가하지 못했습니다.");
+              }
+            }}>요약 카드 추가</button>
             <button
               className={selected === "global" ? "active" : ""}
               onClick={() => setSelected("global")}

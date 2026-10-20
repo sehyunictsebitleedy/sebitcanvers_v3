@@ -114,6 +114,12 @@ export const componentSchema = z.discriminatedUnion("type", [
     message: z.string().min(1).max(500),
     status: z.enum(["info", "success", "warning", "error"]),
   }),
+  z.strictObject({
+    ...base,
+    type: z.literal("summary"),
+    description: z.string().trim().min(1).max(500),
+    displayValue: z.string().trim().min(1).max(80),
+  }),
 ]);
 export const dashboardSchema = z
   .strictObject({

@@ -72,7 +72,7 @@ export function buildDashboard(
     .map((section) => ({
       ...section,
       components: section.components.filter((component) =>
-        options.components.includes(component.type),
+        options.components.some((type) => type === component.type),
       ),
     }))
     .filter((section) => section.components.length);

@@ -21,6 +21,8 @@ const changes = z
     max: z.number().finite().optional(),
     message: z.string().min(1).max(500).optional(),
     status: z.enum(["info", "success", "warning", "error"]).optional(),
+    description: z.string().trim().min(1).max(500).optional(),
+    displayValue: z.string().trim().min(1).max(80).optional(),
   })
   .refine((v) => Object.keys(v).length > 0, "변경할 속성이 필요합니다.");
 const visualChanges = dashboardSchema.shape.mainVisual

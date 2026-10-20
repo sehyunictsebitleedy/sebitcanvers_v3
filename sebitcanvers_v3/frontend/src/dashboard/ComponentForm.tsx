@@ -87,6 +87,7 @@ export function ComponentForm({
               table: "테이블",
               progress: "진행률",
               notification: "알림",
+              summary: "요약 카드",
             }[draft.type]
           }{" "}
           속성
@@ -128,6 +129,20 @@ export function ComponentForm({
             ))}
           </select>
         </label>
+        {draft.type === "summary" && (
+          <>
+            <label>
+              표시 값
+              <input aria-label="표시 값" value={draft.displayValue} maxLength={80}
+                onChange={(e) => patch({ displayValue: e.target.value })} />
+            </label>
+            <label>
+              요약 설명
+              <textarea aria-label="요약 설명" value={draft.description} maxLength={500}
+                onChange={(e) => patch({ description: e.target.value })} />
+            </label>
+          </>
+        )}
         {draft.type === "kpi" && (
           <>
             {numberField("값", "value", draft.value)}

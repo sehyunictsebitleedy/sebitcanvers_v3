@@ -1,6 +1,20 @@
 import { dashboardSchema } from "./schema";
 import type { DashboardComponent, DashboardSchema } from "./schema";
 
+export function addSummary(schema: DashboardSchema, id: string) {
+  const target = schema.sections.find((section) => section.visible && section.components.length < 20);
+  if (!target) throw new Error("표시 중인 섹션에 여유 공간이 없습니다. 항목을 정리한 뒤 다시 추가해 주세요.");
+  return editSnapshot(schema, {
+    sections: schema.sections.map((section) => section.id === target.id
+      ? { ...section, components: [...section.components, {
+          id, type: "summary" as const, title: "운영 요약", visible: true,
+          layout: { columnSpan: 6 }, displayValue: "정상 운영",
+          description: "주요 현황과 다음 할 일을 요약해 주세요.",
+        }] }
+      : section),
+  });
+}
+
 export function editSnapshot(
   schema: DashboardSchema,
   patch: Partial<DashboardSchema>,

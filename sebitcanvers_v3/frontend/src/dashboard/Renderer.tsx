@@ -184,6 +184,14 @@ export function Chart({ component }: { component: ChartComponent }) {
   );
 }
 function Content({ component }: { component: DashboardComponent }) {
+  if (component.type === "summary")
+    return (
+      <div className="db-summary-content">
+        <h3>{component.title}</h3>
+        <p className="db-value">{component.displayValue}</p>
+        <p className="db-summary-description">{component.description}</p>
+      </div>
+    );
   if (component.type === "progress")
     return (
       <>
