@@ -2,6 +2,42 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createSample } from "./samples";
 import { DashboardRenderer } from "./Renderer";
 import "./renderer.css";
+import type { DashboardSchema } from "./schema";
+
+export function SchemaPreview({ schema }: { schema: DashboardSchema }) {
+  const outer = useRef<HTMLDivElement>(null);
+  const inner = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const parent = outer.current!;
+    const child = inner.current!;
+    const resize = () => {
+      const scale = parent.clientWidth / schema.layout.desktopWidth;
+      child.style.transform = `scale(${scale})`;
+      parent.style.height = `${child.scrollHeight * scale}px`;
+    };
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(resize);
+    });
+    observer.observe(parent);
+    observer.observe(child);
+    resize();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
+  }, [schema.layout.desktopWidth]);
+  return (
+    <div className="schema-preview">
+      <div ref={outer} className="schema-preview-viewport">
+        <div ref={inner} className="schema-preview-content">
+          <DashboardRenderer schema={schema} />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function Dashboard({
   type = 0,
@@ -42,11 +78,18 @@ export function Dashboard({
       child.style.transform = `scale(${scale})`;
       parent.style.height = `${child.scrollHeight * scale}px`;
     };
-    const observer = new ResizeObserver(resize);
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(resize);
+    });
     observer.observe(parent);
     observer.observe(child);
     resize();
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
   }, [schema.layout.desktopWidth]);
   return (
     <div className={`schema-preview ${compact ? "is-compact" : ""}`}>

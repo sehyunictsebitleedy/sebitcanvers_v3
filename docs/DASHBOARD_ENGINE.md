@@ -1,5 +1,12 @@
 # Dashboard 엔진 1차 구현
 
+> 2026-10-13: 현재 5개 컴포넌트의 CMS 편집, AI 생성 API, Finalize와 실제 브라우저 검수를 추가했습니다.
+> 최신 변경은 [AI 생성·CMS·Finalize 문서](GENERATION_CMS_FINALIZE.md)를 참고하세요.
+
+> 이 문서의 초기 구현 이후 Create 옵션과 Progress/Notification, 스타일·밀도,
+> 이미지 Main Visual·CTA 및 ZIP Asset을 추가했습니다. 최신 확장 범위는
+> [Create 구현 문서](CREATE_IMPLEMENTATION.md)를 참고하세요.
+
 ## 완료 목표
 
 `Sample JSON → Validation → Renderer → KPI 편집 → 검증 → HTML/CSS/JS ZIP`
@@ -10,7 +17,8 @@
 ## 사용 방법
 
 1. 홈에서 **대시보드 만들기**를 누릅니다.
-2. 프로젝트 이름과 유형을 선택하고 **샘플 편집 시작**을 누릅니다.
+2. Create에서 프로젝트 이름과 조건을 선택하고 **샘플 미리보기 만들기**를 누릅니다.
+   Preview의 **편집으로 돌아가기**에서 KPI를 편집합니다.
 3. 왼쪽 목록이나 캔버스에서 KPI를 선택합니다.
 4. 오른쪽에서 제목·값·단위를 변경하고 **변경 적용**을 누릅니다.
 5. **실행 취소**로 직전 정상 상태를 한 번 복원할 수 있습니다.
@@ -19,7 +27,7 @@
 8. 압축을 풀어 `index.html`을 엽니다. 최근 작업을 열면 저장된 Schema를 복원합니다.
 
 AI 호출 없이 검증된 샘플로 시작합니다. 차트·테이블은 현재 표시만 지원하며,
-일반 Create 옵션 화면과 전체 Property Editor는 다음 단계입니다.
+Create 옵션 화면은 연결했으며 전체 Property Editor는 다음 단계입니다.
 
 ## 모듈
 
@@ -54,8 +62,8 @@ AI 호출 없이 검증된 샘플로 시작합니다. 차트·테이블은 현�
 - Donut: 단일 데이터셋, 음수 금지, 합계는 0보다 커야 합니다.
 - Table: 고유한 컬럼 key, 행 구조 일치. 빈 행 배열은 Empty State로 표시합니다.
 - Navigation: Sidebar/Top. 단일 화면의 메뉴 표현이며 페이지 전환은 없습니다.
-- Main Visual: 텍스트 Banner/Hero 표시만 지원합니다. 이미지·CTA·Image + Text는 후속 범위입니다.
-- Theme: HEX 색상, Radius, Grid Gap. Style/Density 프리셋은 아직 포함하지 않습니다.
+- Main Visual: Banner/Hero/Image + Text, 높이·정렬·이미지·Overlay·CTA를 지원합니다.
+- Theme: HEX 색상, Radius, Grid Gap 및 Style/Density 프리셋을 지원합니다.
 
 실패한 검증 결과는 기존 Schema를 대체하지 않습니다. 편집은 적용 버튼으로
 확정하며, 유효한 변경 직후 브라우저 저장을 시도합니다. 잘못된 숫자나 빈 제목은
@@ -75,7 +83,8 @@ AI 호출 없이 검증된 샘플로 시작합니다. 차트·테이블은 현�
   다시 저장하거나 ZIP을 내려받을 수 있습니다. 저장 실패 상태로 홈에 나갈 때 확인합니다.
 - 목록을 임의로 잘라 오래된 프로젝트를 자동 삭제하던 동작을 제거했습니다.
 - Undo는 현재 편집 세션의 최소 1단계입니다. 재진입 시 Undo 이력은 복원하지 않습니다.
-- 이미지 영속 저장, Schema 버전 마이그레이션, 전체 Create 조건과 상태별 화면 복원은 후속 범위입니다.
+- 이미지는 IndexedDB에 보존하고 Create 조건은 별도 Draft와 `settings.selections`에 저장합니다.
+  Schema 버전 마이그레이션 및 모든 상태별 화면 복원은 후속 범위입니다.
 
 ## 최소 Export
 

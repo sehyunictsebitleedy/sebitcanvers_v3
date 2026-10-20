@@ -1,0 +1,35 @@
+import { test, expect } from "@playwright/test";
+
+test("activity supports add, undo, edit, reorder, reload, empty state and finalize", async ({ page }) => {
+  await page.goto("/#create");
+  await page.getByRole("button", { name: "샘플 미리보기 만들기" }).click();
+  await page.getByRole("button", { name: "편집으로 돌아가기" }).click();
+  await page.getByRole("button", { name: "활동 목록 추가" }).click();
+  await expect(page.locator(".db-activity-list")).toHaveCount(1);
+  await page.getByRole("button", { name: "실행 취소" }).click();
+  await expect(page.locator(".db-activity-list")).toHaveCount(0);
+  await page.getByRole("button", { name: "활동 목록 추가" }).click();
+  await page.getByLabel("활동 1 제목", { exact: true }).fill("검수한 활동");
+  await page.getByLabel("활동 1 설명", { exact: true }).fill("업무 진행 상태 확인");
+  await page.getByLabel("활동 1 시간", { exact: true }).fill("오늘 15:00");
+  await page.getByLabel("활동 1 아이콘", { exact: true }).selectOption("alert");
+  await page.getByRole("button", { name: "활동 항목 추가" }).click();
+  await page.getByLabel("활동 2 제목", { exact: true }).fill("먼저 표시");
+  await page.getByRole("button", { name: "활동 2 위로", exact: true }).click();
+  await page.getByRole("button", { name: "변경 적용", exact: true }).click();
+  await expect(page.locator(".db-activity-list li").first()).toContainText("먼저 표시");
+  await page.reload();
+  await expect(page.locator(".db-activity-list")).toContainText("오늘 15:00");
+  await expect(page.locator(".db-activity-list").getByRole("img", { name: "주의" })).toBeVisible();
+  await page.setViewportSize({ width: 1280, height: 1000 });
+  expect(await page.locator(".db-activity-list").evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+  await page.locator(".workspace-tree").getByRole("button", { name: "최근 활동", exact: true }).click();
+  await page.getByRole("button", { name: "활동 1 삭제", exact: true }).click();
+  await page.getByRole("button", { name: "활동 1 삭제", exact: true }).click();
+  await page.getByRole("button", { name: "변경 적용", exact: true }).click();
+  await expect(page.getByText("표시할 활동이 없습니다.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "실행 취소" }).click();
+  await expect(page.locator(".db-activity-list li")).toHaveCount(2);
+  await page.getByRole("button", { name: "확정 및 다운로드" }).click();
+  await expect(page.getByText("모든 검사를 통과했습니다.")).toBeVisible();
+});

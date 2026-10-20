@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { validateDashboard } from "./schema";
+import { AssetImage } from "./AssetImage";
 import type { ChartComponent, DashboardComponent } from "./schema";
 
 export function Chart({ component }: { component: ChartComponent }) {
@@ -182,7 +183,85 @@ export function Chart({ component }: { component: ChartComponent }) {
     </>
   );
 }
-function Content({ component }: { component: DashboardComponent }) {
+function Content({ component, editing = false }: { component: DashboardComponent; editing?: boolean }) {
+  if (component.type === "button")
+    return (
+      <>
+        <h3>{component.title}</h3>
+        <a className={`db-action db-action-${component.variant} db-action-${component.size}`}
+          href={component.url}
+          target={component.url.startsWith("#") ? undefined : "_blank"}
+          rel={component.url.startsWith("#") ? undefined : "noopener noreferrer"}
+          tabIndex={editing ? -1 : undefined}
+          onClick={(event) => {
+            if (editing) event.preventDefault();
+            else if (component.url.startsWith("#")) {
+              event.preventDefault();
+              event.currentTarget.closest(".schema-dashboard")
+                ?.querySelector("#dashboard-data")?.scrollIntoView({ block: "start" });
+            }
+          }}>
+          {component.label}
+          {!component.url.startsWith("#") && <span className="db-link-hint"> (새 창)</span>}
+        </a>
+      </>
+    );
+  if (component.type === "activity")
+    return (
+      <>
+        <h3>{component.title}</h3>
+        {component.items.length ? (
+          <ul className="db-activity-list">
+            {component.items.map((item, index) => (
+              <li key={index}>
+                <span className="db-activity-icon" role="img"
+                  aria-label={{ info: "안내", check: "완료", clock: "대기", alert: "주의" }[item.icon]}>
+                  {{ info: "ⓘ", check: "✓", clock: "◷", alert: "!" }[item.icon]}
+                </span>
+                <div>
+                  <strong>{item.title}</strong>
+                  {item.description && <p>{item.description}</p>}
+                  <small>{item.timestamp}</small>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : <p className="db-empty">표시할 활동이 없습니다.</p>}
+      </>
+    );
+  if (component.type === "summary")
+    return (
+      <div className="db-summary-content">
+        <h3>{component.title}</h3>
+        <p className="db-value">{component.displayValue}</p>
+        <p className="db-summary-description">{component.description}</p>
+      </div>
+    );
+  if (component.type === "progress")
+    return (
+      <>
+        <h3>{component.title}</h3>
+        <p className="db-value">
+          {Math.round((component.value / component.max) * 100)}
+          <span>%</span>
+        </p>
+        <progress
+          max={component.max}
+          value={component.value}
+          aria-label={component.title}
+        />
+        <p className="db-progress-caption">
+          {component.value} / {component.max} 완료
+        </p>
+      </>
+    );
+  if (component.type === "notification")
+    return (
+      <div className={`db-notification ${component.status}`}>
+        <h3>{component.title}</h3>
+        <p>{component.message}</p>
+      </div>
+    );
   if (component.type === "kpi")
     return (
       <>
@@ -242,10 +321,12 @@ export function DashboardRenderer({
   schema,
   selectedId,
   onSelect,
+  assetUrls,
 }: {
   schema: unknown;
   selectedId?: string;
   onSelect?: (id: string) => void;
+  assetUrls?: Record<string, string>;
 }) {
   const result = validateDashboard(schema);
   if (!result.success)
@@ -276,7 +357,7 @@ export function DashboardRenderer({
   } as CSSProperties;
   return (
     <div
-      className={`schema-dashboard db-nav-${data.navigation.type}`}
+      className={`schema-dashboard db-nav-${data.navigation.type} db-style-${data.theme.preset ?? "dark"} db-density-${data.layout.density ?? "standard"}`}
       style={style}
     >
       <aside className="db-nav" aria-label="대시보드 메뉴">
@@ -299,15 +380,58 @@ export function DashboardRenderer({
           <span className="db-sample">SAMPLE DASHBOARD</span>
         </header>
         {data.mainVisual.enabled && (
-          <section className={`db-visual ${data.mainVisual.type}`}>
-            <h2>{data.mainVisual.title}</h2>
-            <p>{data.mainVisual.description}</p>
+          <section
+            className={`db-visual ${data.mainVisual.type} db-visual-${data.mainVisual.height ?? "medium"} ${data.mainVisual.imageAssetId ? "has-image" : ""}`}
+            style={{ textAlign: data.mainVisual.alignment ?? "left" }}
+          >
+            {(data.mainVisual.imageAssetId ||
+              data.mainVisual.type === "image-text") && (
+              <div className="db-visual-image">
+                <AssetImage
+                  id={data.mainVisual.imageAssetId}
+                  src={
+                    data.mainVisual.imageAssetId
+                      ? assetUrls?.[data.mainVisual.imageAssetId]
+                      : undefined
+                  }
+                />
+                {data.mainVisual.imageAssetId && (
+                  <div
+                    className="db-visual-overlay"
+                    style={{ opacity: (data.mainVisual.overlay ?? 35) / 100 }}
+                  />
+                )}
+              </div>
+            )}
+            <div className="db-visual-copy">
+              <h2>{data.mainVisual.title}</h2>
+              <p>{data.mainVisual.description}</p>
+              {data.mainVisual.cta?.enabled && (
+                <a
+                  href={data.mainVisual.cta.url}
+                  target={
+                    data.mainVisual.cta.url.startsWith("#")
+                      ? undefined
+                      : "_blank"
+                  }
+                  rel="noopener noreferrer"
+                  className="db-visual-cta"
+                >
+                  {data.mainVisual.cta.label}
+                </a>
+              )}
+            </div>
           </section>
         )}
         {data.sections
           .filter((section) => section.visible)
           .map((section) => (
             <section
+              id={
+                section.id === data.sections.find((item) => item.visible)?.id
+                  ? "dashboard-data"
+                  : undefined
+              }
               className="db-section"
               key={section.id}
               aria-label={section.title}
@@ -322,7 +446,7 @@ export function DashboardRenderer({
                       gridColumn: `span ${component.layout.columnSpan}`,
                     }}
                   >
-                    {onSelect && component.type === "kpi" && (
+                    {onSelect && (
                       <button
                         className="db-select"
                         onClick={() => onSelect(component.id)}
@@ -330,7 +454,7 @@ export function DashboardRenderer({
                         aria-pressed={selectedId === component.id}
                       />
                     )}
-                    <Content component={component} />
+                    <Content component={component} editing={!!onSelect} />
                   </article>
                 ))}
             </section>
