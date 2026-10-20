@@ -183,7 +183,29 @@ export function Chart({ component }: { component: ChartComponent }) {
     </>
   );
 }
-function Content({ component }: { component: DashboardComponent }) {
+function Content({ component, editing = false }: { component: DashboardComponent; editing?: boolean }) {
+  if (component.type === "button")
+    return (
+      <>
+        <h3>{component.title}</h3>
+        <a className={`db-action db-action-${component.variant} db-action-${component.size}`}
+          href={component.url}
+          target={component.url.startsWith("#") ? undefined : "_blank"}
+          rel={component.url.startsWith("#") ? undefined : "noopener noreferrer"}
+          tabIndex={editing ? -1 : undefined}
+          onClick={(event) => {
+            if (editing) event.preventDefault();
+            else if (component.url.startsWith("#")) {
+              event.preventDefault();
+              event.currentTarget.closest(".schema-dashboard")
+                ?.querySelector("#dashboard-data")?.scrollIntoView({ block: "start" });
+            }
+          }}>
+          {component.label}
+          {!component.url.startsWith("#") && <span className="db-link-hint"> (새 창)</span>}
+        </a>
+      </>
+    );
   if (component.type === "activity")
     return (
       <>
@@ -406,8 +428,6 @@ export function DashboardRenderer({
           .map((section) => (
             <section
               id={
-                data.mainVisual.enabled &&
-                data.mainVisual.cta?.enabled &&
                 section.id === data.sections.find((item) => item.visible)?.id
                   ? "dashboard-data"
                   : undefined
@@ -434,7 +454,7 @@ export function DashboardRenderer({
                         aria-pressed={selectedId === component.id}
                       />
                     )}
-                    <Content component={component} />
+                    <Content component={component} editing={!!onSelect} />
                   </article>
                 ))}
             </section>

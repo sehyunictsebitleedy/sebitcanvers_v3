@@ -99,6 +99,17 @@ export const activityItemsSchema = z.array(z.strictObject({
   timestamp: z.string().trim().min(1).max(80),
   icon: z.enum(["info", "check", "clock", "alert"]),
 })).max(20);
+export const buttonSchema = z.strictObject({
+  ...base,
+  type: z.literal("button"),
+  label: text,
+  variant: z.enum(["primary", "secondary", "ghost", "danger"]),
+  size: z.enum(["small", "medium", "large"]),
+  url: safeUrl.refine(
+    (value) => !value.startsWith("#") || value === "#dashboard-data",
+    "내부 주소는 #dashboard-data를 사용해 주세요.",
+  ),
+});
 export const componentSchema = z.discriminatedUnion("type", [
   kpiSchema,
   chartSchema,
@@ -131,6 +142,7 @@ export const componentSchema = z.discriminatedUnion("type", [
     type: z.literal("activity"),
     items: activityItemsSchema,
   }),
+  buttonSchema,
 ]);
 export const dashboardSchema = z
   .strictObject({
@@ -223,7 +235,7 @@ export const dashboardSchema = z
       !schema.sections.some(
         (section) =>
           section.visible &&
-          section.components.some((component) => component.visible),
+          section.components.some((component) => component.visible && component.type !== "button"),
       )
     )
       ctx.addIssue({

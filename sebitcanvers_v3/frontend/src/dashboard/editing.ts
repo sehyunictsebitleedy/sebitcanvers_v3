@@ -28,6 +28,14 @@ export function addActivity(schema: DashboardSchema, id: string) {
   });
 }
 
+export function addButton(schema: DashboardSchema, id: string) {
+  return addComponent(schema, {
+    id, type: "button", title: "바로가기", visible: true,
+    layout: { columnSpan: 6 }, label: "대시보드 데이터 보기",
+    variant: "primary", size: "medium", url: "#dashboard-data",
+  });
+}
+
 export function editSnapshot(
   schema: DashboardSchema,
   patch: Partial<DashboardSchema>,

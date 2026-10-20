@@ -89,6 +89,7 @@ export function ComponentForm({
               notification: "알림",
               summary: "요약 카드",
               activity: "활동 목록",
+              button: "버튼",
             }[draft.type]
           }{" "}
           속성
@@ -130,6 +131,36 @@ export function ComponentForm({
             ))}
           </select>
         </label>
+        {draft.type === "button" && (
+          <>
+            <label>버튼 문구
+              <input aria-label="버튼 문구" value={draft.label} maxLength={120}
+                onChange={(e) => patch({ label: e.target.value })} />
+            </label>
+            <label>버튼 스타일
+              <select aria-label="버튼 스타일" value={draft.variant}
+                onChange={(e) => patch({ variant: e.target.value })}>
+                <option value="primary">Primary · 기본</option>
+                <option value="secondary">Secondary · 보조</option>
+                <option value="ghost">Ghost · 투명</option>
+                <option value="danger">Danger · 강조</option>
+              </select>
+            </label>
+            <label>버튼 크기
+              <select aria-label="버튼 크기" value={draft.size}
+                onChange={(e) => patch({ size: e.target.value })}>
+                <option value="small">작게</option>
+                <option value="medium">기본</option>
+                <option value="large">크게</option>
+              </select>
+            </label>
+            <label>이동 주소
+              <input aria-label="이동 주소" value={draft.url} maxLength={2048}
+                onChange={(e) => patch({ url: e.target.value })} />
+            </label>
+            <p>http/https 웹주소는 새 창으로, #dashboard-data는 대시보드 내부로 이동합니다. 미리보기에서 클릭할 수 있습니다.</p>
+          </>
+        )}
         {draft.type === "activity" && (
           <div>
             <p>최대 20개 · 입력 후 변경 적용을 눌러 저장하세요.</p>
