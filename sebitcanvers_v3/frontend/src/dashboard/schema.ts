@@ -93,6 +93,12 @@ const tableSchema = z
         });
     });
   });
+export const activityItemsSchema = z.array(z.strictObject({
+  title: text,
+  description: z.string().trim().max(500),
+  timestamp: z.string().trim().min(1).max(80),
+  icon: z.enum(["info", "check", "clock", "alert"]),
+})).max(20);
 export const componentSchema = z.discriminatedUnion("type", [
   kpiSchema,
   chartSchema,
@@ -119,6 +125,11 @@ export const componentSchema = z.discriminatedUnion("type", [
     type: z.literal("summary"),
     description: z.string().trim().min(1).max(500),
     displayValue: z.string().trim().min(1).max(80),
+  }),
+  z.strictObject({
+    ...base,
+    type: z.literal("activity"),
+    items: activityItemsSchema,
   }),
 ]);
 export const dashboardSchema = z

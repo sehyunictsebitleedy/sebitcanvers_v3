@@ -88,6 +88,7 @@ export function ComponentForm({
               progress: "진행률",
               notification: "알림",
               summary: "요약 카드",
+              activity: "활동 목록",
             }[draft.type]
           }{" "}
           속성
@@ -129,6 +130,46 @@ export function ComponentForm({
             ))}
           </select>
         </label>
+        {draft.type === "activity" && (
+          <div>
+            <p>최대 20개 · 입력 후 변경 적용을 눌러 저장하세요.</p>
+            {draft.items.map((item, index) => (
+              <fieldset key={`${resetVersion}-${index}`}>
+                <legend>활동 {index + 1}</legend>
+                <label>제목
+                  <input aria-label={`활동 ${index + 1} 제목`} value={item.title} maxLength={120}
+                    onChange={(e) => patch({ items: draft.items.map((v, i) => i === index ? { ...v, title: e.target.value } : v) })} />
+                </label>
+                <label>설명
+                  <textarea aria-label={`활동 ${index + 1} 설명`} value={item.description} maxLength={500}
+                    onChange={(e) => patch({ items: draft.items.map((v, i) => i === index ? { ...v, description: e.target.value } : v) })} />
+                </label>
+                <label>시간
+                  <input aria-label={`활동 ${index + 1} 시간`} value={item.timestamp} maxLength={80}
+                    onChange={(e) => patch({ items: draft.items.map((v, i) => i === index ? { ...v, timestamp: e.target.value } : v) })} />
+                </label>
+                <label>아이콘
+                  <select aria-label={`활동 ${index + 1} 아이콘`} value={item.icon}
+                    onChange={(e) => patch({ items: draft.items.map((v, i) => i === index ? { ...v, icon: e.target.value } : v) })}>
+                    <option value="info">안내</option><option value="check">완료</option>
+                    <option value="clock">대기</option><option value="alert">주의</option>
+                  </select>
+                </label>
+                <button type="button" disabled={index === 0} onClick={() => {
+                  const items = [...draft.items];
+                  [items[index - 1], items[index]] = [items[index], items[index - 1]];
+                  patch({ items });
+                }} aria-label={`활동 ${index + 1} 위로`}>위로</button>
+                <button type="button" onClick={() => patch({ items: draft.items.filter((_, i) => i !== index) })}
+                  aria-label={`활동 ${index + 1} 삭제`}>삭제</button>
+              </fieldset>
+            ))}
+            <button type="button" disabled={draft.items.length >= 20}
+              onClick={() => patch({ items: [...draft.items, {
+                title: "새 활동", description: "", timestamp: "방금", icon: "info",
+              }] })}>활동 항목 추가</button>
+          </div>
+        )}
         {draft.type === "summary" && (
           <>
             <label>

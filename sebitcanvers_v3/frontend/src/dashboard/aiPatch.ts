@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { componentSchema, dashboardSchema, kpiSchema } from "./schema";
+import { activityItemsSchema, componentSchema, dashboardSchema, kpiSchema } from "./schema";
 import type { DashboardSchema } from "./schema";
 
 const id = z.string().regex(/^[a-zA-Z0-9_-]{1,80}$/);
@@ -23,6 +23,7 @@ const changes = z
     status: z.enum(["info", "success", "warning", "error"]).optional(),
     description: z.string().trim().min(1).max(500).optional(),
     displayValue: z.string().trim().min(1).max(80).optional(),
+    items: activityItemsSchema.optional(),
   })
   .refine((v) => Object.keys(v).length > 0, "변경할 속성이 필요합니다.");
 const visualChanges = dashboardSchema.shape.mainVisual

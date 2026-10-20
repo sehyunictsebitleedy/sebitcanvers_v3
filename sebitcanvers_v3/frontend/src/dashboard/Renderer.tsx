@@ -184,6 +184,29 @@ export function Chart({ component }: { component: ChartComponent }) {
   );
 }
 function Content({ component }: { component: DashboardComponent }) {
+  if (component.type === "activity")
+    return (
+      <>
+        <h3>{component.title}</h3>
+        {component.items.length ? (
+          <ul className="db-activity-list">
+            {component.items.map((item, index) => (
+              <li key={index}>
+                <span className="db-activity-icon" role="img"
+                  aria-label={{ info: "안내", check: "완료", clock: "대기", alert: "주의" }[item.icon]}>
+                  {{ info: "ⓘ", check: "✓", clock: "◷", alert: "!" }[item.icon]}
+                </span>
+                <div>
+                  <strong>{item.title}</strong>
+                  {item.description && <p>{item.description}</p>}
+                  <small>{item.timestamp}</small>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : <p className="db-empty">표시할 활동이 없습니다.</p>}
+      </>
+    );
   if (component.type === "summary")
     return (
       <div className="db-summary-content">
