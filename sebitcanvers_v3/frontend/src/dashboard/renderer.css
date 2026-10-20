@@ -7,6 +7,13 @@
   grid-template-columns: 190px minmax(0, 1fr);
   color: var(--db-text);
   background: var(--db-bg);
+  background-image:
+    radial-gradient(ellipse 850px 520px at 100% 0%,
+      color-mix(in srgb, var(--db-primary) 18%, transparent), transparent 75%),
+    radial-gradient(ellipse 700px 600px at 15% 90%,
+      color-mix(in srgb, var(--db-primary) 7%, transparent), transparent 75%),
+    linear-gradient(145deg,
+      color-mix(in srgb, var(--db-surface) 40%, transparent), transparent 60%);
   font-family: Pretendard, "Malgun Gothic", system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.5;
@@ -20,6 +27,8 @@
 }
 .schema-dashboard .db-nav {
   background: var(--db-bg);
+  background-image: linear-gradient(180deg,
+    color-mix(in srgb, var(--db-primary) 6%, transparent), transparent 65%);
   border-right: 1px solid var(--db-border);
   padding: 32px 18px;
   display: flex;
@@ -87,6 +96,9 @@
   border: 1px solid var(--db-border);
   border-radius: var(--db-radius);
   overflow-wrap: anywhere;
+  box-shadow:
+    0 6px 20px rgb(0 0 0 / 5%),
+    inset 0 1px 0 color-mix(in srgb, var(--db-text) 4%, transparent);
 }
 .schema-dashboard .db-card h3 {
   font-size: 14px;
