@@ -491,3 +491,25 @@
 .schema-dashboard .db-action:hover { text-decoration: underline; text-underline-offset: 4px; }
 .schema-dashboard .db-action:focus-visible { outline: 3px solid var(--db-text); outline-offset: 3px; }
 .schema-dashboard .db-link-hint { font-size: 0.8em; font-weight: 400; }
+.schema-dashboard .db-status-badge {
+  --badge-accent: #3b82f6;
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 100%;
+  margin-top: 14px;
+  padding: 7px 11px;
+  border: 1px solid color-mix(in srgb, var(--badge-accent) 45%, var(--db-border));
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--badge-accent) 12%, var(--db-surface));
+  color: var(--db-text);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.schema-dashboard .db-status-badge > span { min-width: 0; }
+.schema-dashboard .db-status-badge-state { font-weight: 700; }
+.schema-dashboard .db-status-badge-success { --badge-accent: #16a34a; }
+.schema-dashboard .db-status-badge-warning { --badge-accent: #d97706; }
+.schema-dashboard .db-status-badge-error { --badge-accent: #dc2626; }

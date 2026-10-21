@@ -90,6 +90,7 @@ export function ComponentForm({
               summary: "요약 카드",
               activity: "활동 목록",
               button: "버튼",
+              statusBadge: "상태 배지",
             }[draft.type]
           }{" "}
           속성
@@ -131,6 +132,23 @@ export function ComponentForm({
             ))}
           </select>
         </label>
+        {draft.type === "statusBadge" && (
+          <>
+            <label>배지 문구
+              <input aria-label="배지 문구" value={draft.label} maxLength={120}
+                onChange={(e) => patch({ label: e.target.value })} />
+            </label>
+            <label>배지 상태
+              <select aria-label="배지 상태" value={draft.status}
+                onChange={(e) => patch({ status: e.target.value })}>
+                <option value="info">안내</option>
+                <option value="success">정상</option>
+                <option value="warning">주의</option>
+                <option value="error">오류</option>
+              </select>
+            </label>
+          </>
+        )}
         {draft.type === "button" && (
           <>
             <label>버튼 문구

@@ -184,6 +184,24 @@ export function Chart({ component }: { component: ChartComponent }) {
   );
 }
 function Content({ component, editing = false }: { component: DashboardComponent; editing?: boolean }) {
+  if (component.type === "statusBadge") {
+    const state = {
+      info: { label: "안내", symbol: "ⓘ" },
+      success: { label: "정상", symbol: "✓" },
+      warning: { label: "주의", symbol: "!" },
+      error: { label: "오류", symbol: "×" },
+    }[component.status];
+    return (
+      <>
+        <h3>{component.title}</h3>
+        <span className={`db-status-badge db-status-badge-${component.status}`}>
+          <span aria-hidden="true">{state.symbol}</span>
+          <span className="db-status-badge-state">{state.label}</span>
+          <span>{component.label}</span>
+        </span>
+      </>
+    );
+  }
   if (component.type === "button")
     return (
       <>

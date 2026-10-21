@@ -143,6 +143,12 @@ export const componentSchema = z.discriminatedUnion("type", [
     items: activityItemsSchema,
   }),
   buttonSchema,
+  z.strictObject({
+    ...base,
+    type: z.literal("statusBadge"),
+    label: text,
+    status: z.enum(["info", "success", "warning", "error"]),
+  }),
 ]);
 export const dashboardSchema = z
   .strictObject({
