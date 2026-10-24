@@ -183,7 +183,7 @@ export function applyAiPatch(
       summary.push("테마 색상·스타일 변경");
     } else if (op.action === "headerChange") {
       next.header = { ...next.header, ...op.changes };
-      summary.push("대시보드 제목·설명 변경");
+      summary.push("대시보드 제목·설명·날짜 설정 변경");
     } else if (op.action === "layoutChange") {
       next.layout = { ...next.layout, ...op.changes };
       summary.push("화면 간격·밀도 변경");

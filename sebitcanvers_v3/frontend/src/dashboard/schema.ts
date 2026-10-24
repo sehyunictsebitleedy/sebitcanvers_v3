@@ -190,7 +190,11 @@ export const dashboardSchema = z
         .min(1)
         .max(8),
     }),
-    header: z.strictObject({ title: text, description: z.string().max(300) }),
+    header: z.strictObject({
+      title: text,
+      description: z.string().max(300),
+      date: z.strictObject({ visible: z.boolean(), value: z.iso.date() }).optional(),
+    }),
     mainVisual: z.strictObject({
       enabled: z.boolean(),
       type: z.enum(["banner", "hero", "image-text"]),

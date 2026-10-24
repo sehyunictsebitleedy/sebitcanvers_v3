@@ -399,7 +399,14 @@ export function DashboardRenderer({
             <h2>{data.header.title}</h2>
             <p>{data.header.description}</p>
           </div>
-          <span className="db-sample">SAMPLE DASHBOARD</span>
+          <div className="db-heading-meta">
+            <span className="db-sample">SAMPLE DASHBOARD</span>
+            {data.header.date?.visible && (
+              <p className="db-header-date">기준일 <time dateTime={data.header.date.value}>
+                {data.header.date.value.replaceAll("-", ".")}
+              </time></p>
+            )}
+          </div>
         </header>
         {data.mainVisual.enabled && (
           <section
