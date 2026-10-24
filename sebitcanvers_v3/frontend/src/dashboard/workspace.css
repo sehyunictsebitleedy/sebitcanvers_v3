@@ -434,3 +434,10 @@
 .ai-edit-drawer .form-error {
   color: #ffb8c4;
 }
+.navigation-editor > fieldset {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid #303a4d;
+  border-radius: 8px;
+}
+.navigation-order-actions { display: flex; gap: 8px; margin-top: 8px; }

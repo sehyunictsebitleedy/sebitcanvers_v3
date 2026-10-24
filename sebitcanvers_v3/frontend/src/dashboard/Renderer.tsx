@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { validateDashboard } from "./schema";
 import { AssetImage } from "./AssetImage";
+import { NavigationIcon } from "./NavigationEditor";
 import type { ChartComponent, DashboardComponent } from "./schema";
 
 export function Chart({ component }: { component: ChartComponent }) {
@@ -361,6 +362,8 @@ export function DashboardRenderer({
       </div>
     );
   const data = result.data;
+  const visibleMenus = data.navigation.items.filter((item) => item.visible !== false);
+  const activeMenuId = (visibleMenus.find((item) => item.active) ?? visibleMenus[0])?.id;
   const style = {
     "--db-primary": data.theme.primary,
     "--db-bg": data.theme.background,
@@ -381,9 +384,10 @@ export function DashboardRenderer({
       <aside className="db-nav" aria-label="대시보드 메뉴">
         <div className="db-logo">{data.navigation.logoText}</div>
         <div className="db-nav-items">
-          {data.navigation.items.map((item) => (
-            <span key={item.id} className={item.active ? "active" : ""}>
-              {item.label}
+          {visibleMenus.map((item) => (
+            <span key={item.id} className={item.id === activeMenuId ? "active" : ""}>
+              <NavigationIcon name={item.icon} />
+              <span className="db-menu-label">{item.label}</span>
             </span>
           ))}
         </div>
