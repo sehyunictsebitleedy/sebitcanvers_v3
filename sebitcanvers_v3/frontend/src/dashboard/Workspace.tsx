@@ -8,7 +8,7 @@ import { CreatePage } from "../create/CreatePage";
 import { dashboardTypes, defaultOptions } from "../create/contracts";
 import { ComponentForm } from "./ComponentForm";
 import { GlobalForm } from "./GlobalForm";
-import { addActivity, addButton, addSummary, arrangeComponent, editSnapshot, replaceComponent } from "./editing";
+import { addActivity, addButton, addStatusBadge, addSummary, arrangeComponent, editSnapshot, replaceComponent } from "./editing";
 import { validateFinalization } from "./finalize";
 import type { FinalizeIssue } from "./finalize";
 import { AiEditDrawer } from "./AiEditDrawer";
@@ -355,6 +355,14 @@ export function Workspace({
                 setExportStatus(error instanceof Error ? error.message : "버튼을 추가하지 못했습니다.");
               }
             }}>버튼 추가</button>
+            <button disabled={busy} onClick={() => {
+              try {
+                const id = crypto.randomUUID();
+                if (commit(addStatusBadge(schema, id))) setSelected(id);
+              } catch (error) {
+                setExportStatus(error instanceof Error ? error.message : "상태 배지를 추가하지 못했습니다.");
+              }
+            }}>상태 배지 추가</button>
             <button
               className={selected === "global" ? "active" : ""}
               onClick={() => setSelected("global")}

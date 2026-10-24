@@ -1,0 +1,40 @@
+import { test, expect } from "@playwright/test";
+
+test("status badge add, undo, edit, restore, hide, delete and finalize", async ({ page }, info) => {
+  await page.goto("/#create");
+  await page.getByRole("button", { name: "샘플 미리보기 만들기" }).click();
+  await page.getByRole("button", { name: "편집으로 돌아가기" }).click();
+  await page.getByRole("button", { name: "상태 배지 추가", exact: true }).click();
+  await expect(page.locator(".db-status-badge")).toContainText("정상 운영");
+  await page.getByRole("button", { name: "실행 취소" }).click();
+  await expect(page.locator(".db-status-badge")).toHaveCount(0);
+  await page.getByRole("button", { name: "상태 배지 추가", exact: true }).click();
+  await page.getByLabel("배지 문구", { exact: true }).fill("검토가 필요한 서비스");
+  await page.getByLabel("배지 상태", { exact: true }).selectOption("warning");
+  await page.getByRole("button", { name: "변경 적용", exact: true }).click();
+  await expect(page.locator(".db-status-badge-warning")).toContainText("주의");
+  await page.reload();
+  await expect(page.locator(".db-status-badge-warning")).toContainText("검토가 필요한 서비스");
+  await page.locator(".workspace-tree").getByRole("button", { name: "서비스 상태", exact: true }).click();
+  await page.getByLabel("배지 문구", { exact: true }).fill("긴문구".repeat(40));
+  await page.getByRole("button", { name: "변경 적용", exact: true }).click();
+  await page.setViewportSize({ width: 1280, height: 1000 });
+  expect(await page.locator(".db-status-badge").evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(true);
+  await page.locator(".db-statusBadge").screenshot({ path: info.outputPath("badge-light.png") });
+  await page.locator(".schema-dashboard").evaluate(el => {
+    const style = (el as HTMLElement).style;
+    style.setProperty("--db-bg", "#101827"); style.setProperty("--db-surface", "#1b2738");
+    style.setProperty("--db-text", "#f4f7fc"); style.setProperty("--db-border", "#334155");
+  });
+  await page.locator(".db-statusBadge").screenshot({ path: info.outputPath("badge-dark.png") });
+  await page.getByLabel("표시 여부").uncheck();
+  await page.getByRole("button", { name: "변경 적용", exact: true }).click();
+  await expect(page.locator(".db-status-badge")).toHaveCount(0);
+  await page.getByRole("button", { name: "실행 취소" }).click();
+  await expect(page.locator(".db-status-badge")).toHaveCount(1);
+  await page.locator(".tree-actions").getByRole("button", { name: "삭제", exact: true }).click();
+  await expect(page.locator(".db-status-badge")).toHaveCount(0);
+  await page.getByRole("button", { name: "실행 취소" }).click();
+  await page.getByRole("button", { name: "확정 및 다운로드" }).click();
+  await expect(page.getByText("모든 검사를 통과했습니다.")).toBeVisible();
+});

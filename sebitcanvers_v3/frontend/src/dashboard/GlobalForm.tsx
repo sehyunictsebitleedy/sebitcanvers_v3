@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { DashboardSchema } from "./schema";
 import { saveImage } from "../create/assets";
 import { AssetImage } from "./AssetImage";
+import { NavigationEditor } from "./NavigationEditor";
 
 export function GlobalForm({
   schema,
@@ -139,6 +140,7 @@ export function GlobalForm({
             <label>
               메뉴 위치
               <select
+                aria-label="메뉴 위치"
                 value={draft.navigation.type}
                 onChange={(e) =>
                   setDraft({
@@ -154,25 +156,8 @@ export function GlobalForm({
                 <option value="top">상단</option>
               </select>
             </label>
-            {draft.navigation.items.map((item, i) => (
-              <label key={item.id}>
-                메뉴 {i + 1}
-                <input
-                  value={item.label}
-                  onChange={(e) =>
-                    setDraft({
-                      ...draft,
-                      navigation: {
-                        ...draft.navigation,
-                        items: draft.navigation.items.map((n, j) =>
-                          i === j ? { ...n, label: e.target.value } : n,
-                        ),
-                      },
-                    })
-                  }
-                />
-              </label>
-            ))}
+            <NavigationEditor navigation={draft.navigation}
+              onChange={(navigation) => setDraft({ ...draft, navigation })} />
             {draft.sections.map((section, i) => (
               <div key={section.id}>
                 <label>

@@ -36,6 +36,13 @@ export function addButton(schema: DashboardSchema, id: string) {
   });
 }
 
+export function addStatusBadge(schema: DashboardSchema, id: string) {
+  return addComponent(schema, {
+    id, type: "statusBadge", title: "서비스 상태", visible: true,
+    layout: { columnSpan: 3 }, label: "정상 운영", status: "success",
+  });
+}
+
 export function editSnapshot(
   schema: DashboardSchema,
   patch: Partial<DashboardSchema>,

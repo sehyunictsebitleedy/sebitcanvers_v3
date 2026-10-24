@@ -143,6 +143,12 @@ export const componentSchema = z.discriminatedUnion("type", [
     items: activityItemsSchema,
   }),
   buttonSchema,
+  z.strictObject({
+    ...base,
+    type: z.literal("statusBadge"),
+    label: text,
+    status: z.enum(["info", "success", "warning", "error"]),
+  }),
 ]);
 export const dashboardSchema = z
   .strictObject({
@@ -176,7 +182,11 @@ export const dashboardSchema = z
       type: z.enum(["sidebar", "top"]),
       logoText: text,
       items: z
-        .array(z.strictObject({ id, label: text, active: z.boolean() }))
+        .array(z.strictObject({
+          id, label: text, active: z.boolean(),
+          visible: z.boolean().optional(),
+          icon: z.enum(["none", "dashboard", "chart", "folder", "monitor", "settings"]).optional(),
+        }))
         .min(1)
         .max(8),
     }),
@@ -211,6 +221,9 @@ export const dashboardSchema = z
     }),
   })
   .superRefine((schema, ctx) => {
+    if (!schema.navigation.items.some((item) => item.visible !== false))
+      ctx.addIssue({ code: "custom", path: ["navigation", "items"],
+        message: "최소 하나의 메뉴를 표시해 주세요." });
     const ids = new Set<string>();
     const check = (value: string, path: (string | number)[]) => {
       if (ids.has(value))
