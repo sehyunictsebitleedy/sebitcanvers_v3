@@ -1,0 +1,33 @@
+import { test, expect } from "@playwright/test";
+import JSZip from "jszip";
+import { readFile } from "node:fs/promises";
+
+test("header date toggles, validates, persists, undoes and exports", async ({ page }) => {
+  await page.goto("/#create");
+  await page.getByRole("button", { name: "샘플 미리보기 만들기" }).click();
+  await expect(page.locator(".db-header-date")).toHaveCount(0);
+  await page.getByRole("button", { name: "편집으로 돌아가기" }).click();
+  await page.getByRole("button", { name: "전체 설정", exact: true }).click();
+  await page.getByLabel("헤더 날짜 표시", { exact: true }).check();
+  await page.getByLabel("헤더 기준일", { exact: true }).fill("");
+  await page.getByRole("button", { name: "변경 적용", exact: true }).click();
+  await expect(page.locator(".workspace-form [role=alert]")).toBeVisible();
+  await expect(page.locator(".db-header-date")).toHaveCount(0);
+  await page.getByLabel("헤더 기준일", { exact: true }).fill("2028-02-29");
+  await page.getByRole("button", { name: "변경 적용", exact: true }).click();
+  await expect(page.locator(".db-header-date time")).toHaveText("2028.02.29");
+  await page.reload();
+  await expect(page.locator(".db-header-date time")).toHaveAttribute("datetime", "2028-02-29");
+  await page.getByRole("button", { name: "전체 설정", exact: true }).click();
+  await page.getByLabel("헤더 날짜 표시", { exact: true }).uncheck();
+  await page.getByRole("button", { name: "변경 적용", exact: true }).click();
+  await expect(page.locator(".db-header-date")).toHaveCount(0);
+  await page.getByRole("button", { name: "실행 취소" }).click();
+  await expect(page.locator(".db-header-date time")).toHaveText("2028.02.29");
+  await page.getByRole("button", { name: "확정 및 다운로드" }).click();
+  await expect(page.getByText("모든 검사를 통과했습니다.")).toBeVisible();
+  const downloading = page.waitForEvent("download");
+  await page.getByRole("button", { name: "ZIP 다운로드", exact: true }).click();
+  const zip = await JSZip.loadAsync(await readFile((await (await downloading).path())!));
+  expect(await zip.file("index.html")!.async("string")).toMatch(/datetime="2028-02-29"/i);
+});

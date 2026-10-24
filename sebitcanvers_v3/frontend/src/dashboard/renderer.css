@@ -522,3 +522,7 @@
 .schema-dashboard .db-status-badge-success { --badge-accent: #16a34a; }
 .schema-dashboard .db-status-badge-warning { --badge-accent: #d97706; }
 .schema-dashboard .db-status-badge-error { --badge-accent: #dc2626; }
+.schema-dashboard .db-heading > div:first-child { min-width: 0; overflow-wrap: anywhere; }
+.schema-dashboard .db-heading-meta { text-align: right; flex-shrink: 0; }
+.schema-dashboard .db-heading .db-header-date { margin-top: 8px; font-size: 12px; color: var(--db-muted); }
+.schema-dashboard .db-header-date time { color: var(--db-text); font-variant-numeric: tabular-nums; }

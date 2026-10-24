@@ -43,7 +43,7 @@ export function GlobalForm({
                 },
           )
             ? ""
-            : "입력값을 확인해 주세요. 제목·색상·URL과 최소 하나의 표시 항목이 필요합니다.",
+            : "입력값을 확인해 주세요. 제목·날짜·색상·URL과 최소 하나의 표시 항목이 필요합니다.",
         );
       }}
     >
@@ -90,6 +90,26 @@ export function GlobalForm({
                 }
               />
             </label>
+            <label>헤더 날짜 표시
+              <input type="checkbox" aria-label="헤더 날짜 표시"
+                checked={draft.header.date?.visible ?? false}
+                onChange={(event) => {
+                  const now = new Date();
+                  const today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
+                  setDraft({ ...draft, header: { ...draft.header, date: {
+                    visible: event.target.checked, value: draft.header.date?.value ?? today,
+                  } } });
+                }} />
+            </label>
+            {draft.header.date?.visible && (
+              <label>기준일
+                <input type="date" aria-label="헤더 기준일" value={draft.header.date.value}
+                  onChange={(event) => setDraft({ ...draft, header: { ...draft.header,
+                    date: { visible: true, value: event.target.value },
+                  } })} />
+                <small>선택한 날짜를 저장하며, 새로고침해도 자동 변경되지 않습니다.</small>
+              </label>
+            )}
             {(
               [
                 "primary",
