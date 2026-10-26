@@ -57,7 +57,7 @@ export function Chart({ component }: { component: ChartComponent }) {
             {labels[0]}
           </text>
         </svg>
-        <ul className="db-legend">
+        {component.showLegend !== false && <ul className="db-legend">
           {labels.map((label, i) => (
             <li key={i}>
               <i style={{ background: colors[i % colors.length] }} />
@@ -65,7 +65,7 @@ export function Chart({ component }: { component: ChartComponent }) {
               <strong>{values[i]}</strong>
             </li>
           ))}
-        </ul>
+        </ul>}
       </div>
     );
   }
@@ -173,14 +173,14 @@ export function Chart({ component }: { component: ChartComponent }) {
           </text>
         ))}
       </svg>
-      <ul className="db-series">
+      {component.showLegend !== false && <ul className="db-series">
         {datasets.map((dataset) => (
           <li key={dataset.name}>
             <i style={{ background: dataset.color }} />
             {dataset.name}
           </li>
         ))}
-      </ul>
+      </ul>}
     </>
   );
 }
