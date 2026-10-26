@@ -23,6 +23,7 @@ const chartSchema = z
     ...base,
     type: z.literal("chart"),
     chartType: z.enum(["line", "bar", "area", "donut"]),
+    showLegend: z.boolean().optional(),
     labels: z.array(text).min(1).max(24),
     datasets: z
       .array(

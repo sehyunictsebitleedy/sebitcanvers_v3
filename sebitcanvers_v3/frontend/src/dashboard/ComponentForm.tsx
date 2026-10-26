@@ -278,9 +278,11 @@ export function ComponentForm({
           </>
         )}
         {draft.type === "chart" && (
+          <>
           <label>
             차트 종류
             <select
+              aria-label="차트 종류"
               value={draft.chartType}
               onChange={(e) => patch({ chartType: e.target.value })}
             >
@@ -289,6 +291,11 @@ export function ComponentForm({
               ))}
             </select>
           </label>
+          <label>범례 표시
+            <input type="checkbox" aria-label="범례 표시" checked={draft.showLegend !== false}
+              onChange={(event) => patch({ showLegend: event.target.checked })} />
+          </label>
+          </>
         )}
         {(draft.type === "chart" || draft.type === "table") && (
           <button
