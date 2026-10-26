@@ -3,7 +3,8 @@ import { ArrowLeft, Download, Eye, Pencil, Undo2 } from "lucide-react";
 import { DashboardRenderer } from "./Renderer";
 import { dashboardSchema } from "./schema";
 import type { DashboardSchema } from "./schema";
-import { loadBackup, replaceProject, saveProject } from "./storage";
+import { loadBackup, loadInitialSnapshot, replaceProject, saveProject } from "./storage";
+import { resetProject } from "./reset";
 import { CreatePage } from "../create/CreatePage";
 import { dashboardTypes, defaultOptions } from "../create/contracts";
 import { ComponentForm } from "./ComponentForm";
@@ -32,6 +33,11 @@ export function Workspace({
   );
   const [previous, setPrevious] = useState<DashboardSchema | null>(null);
   const [regenerating, setRegenerating] = useState(false);
+  const [resetBusy, setResetBusy] = useState(false);
+  const [hasInitial] = useState(() => {
+    try { return !!loadInitialSnapshot(localStorage, initial.project.id); }
+    catch { return false; }
+  });
   const [hasBackup, setHasBackup] = useState(() => {
     try { return !!loadBackup(localStorage, initial.project.id); }
     catch { return false; }
@@ -300,7 +306,7 @@ export function Workspace({
           >
             <Download size={16} />
             {busy
-              ? aiBusy
+              ? resetBusy ? "초기화 중" : aiBusy
                 ? "AI 수정 중"
                 : "최종 검증 중"
               : "확정 및 다운로드"}
@@ -324,6 +330,24 @@ export function Workspace({
             setExportStatus("백업을 복원하지 못했습니다. 현재 디자인은 유지됩니다.");
           }
         }}>이전 디자인 복원</button>
+        <button disabled={busy || !hasInitial} onClick={async () => {
+          if (lock.current || !window.confirm("최초 생성 상태로 초기화할까요? 현재 디자인은 이전 디자인 백업으로 보관되며, 다운로드하려면 다시 확정해야 합니다.")) return;
+          lock.current = true;
+          setBusy(true);
+          setResetBusy(true);
+          try {
+            const next = await resetProject(localStorage, schema);
+            acceptReplacement(next);
+            setExportStatus("최초 생성 상태로 초기화했습니다. ‘이전 디자인 복원’으로 초기화 전 작업을 되돌릴 수 있습니다.");
+          } catch (error) {
+            setExportStatus(`초기화하지 못했습니다. 현재 작업은 유지됩니다. ${error instanceof Error ? error.message : "저장 공간과 원본 이미지를 확인해 주세요."}`);
+          } finally {
+            lock.current = false;
+            setBusy(false);
+            setResetBusy(false);
+          }
+        }}>최초 생성 상태로 초기화</button>
+        {!hasInitial && <span>최초 생성본 없음 · 이 프로젝트는 초기화할 수 없습니다.</span>}
         <span role="status">{exportStatus}</span>
       </div>
       <div className="workspace-layout">

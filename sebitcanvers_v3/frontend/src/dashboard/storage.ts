@@ -2,6 +2,20 @@ import { dashboardSchema } from "./schema";
 import type { DashboardSchema } from "./schema";
 export const schemaStorageKey = "sebit-dashboard-schema-v01:";
 const backupKey = "sebit-dashboard-backup-v1:";
+export const initialSnapshotKey = "sebit-dashboard-initial-v1:";
+export function loadInitialSnapshot(storage: Pick<Storage, "getItem">, id: string) {
+  const raw = storage.getItem(initialSnapshotKey + id);
+  if (raw === null) return null;
+  const schema = dashboardSchema.parse(JSON.parse(raw));
+  if (schema.project.id !== id) throw new Error("최초 생성본의 프로젝트가 일치하지 않습니다.");
+  return schema;
+}
+export function saveInitialSnapshot(storage: Pick<Storage, "getItem" | "setItem">, input: unknown) {
+  const schema = dashboardSchema.parse(input);
+  // Capture only at creation. Never replace an existing or damaged original.
+  if (storage.getItem(initialSnapshotKey + schema.project.id) !== null) return;
+  storage.setItem(initialSnapshotKey + schema.project.id, JSON.stringify(schema));
+}
 export function loadBackup(storage: Pick<Storage, "getItem">, id: string) {
   const raw = storage.getItem(backupKey + id);
   if (!raw) return null;
