@@ -23,7 +23,7 @@ import {
 import "./App.css";
 import { Dashboard } from "./dashboard/Preview";
 import { createSample } from "./dashboard/samples";
-import { loadProject, saveProject } from "./dashboard/storage";
+import { loadProject, saveInitialSnapshot, saveProject } from "./dashboard/storage";
 import type { DashboardSchema } from "./dashboard/schema";
 import { dashboardSchema } from "./dashboard/schema";
 import "./dashboard/workspace.css";
@@ -266,6 +266,11 @@ function App() {
       setNotice(
         "프로젝트 목록 저장에 실패했습니다. 현재 작업은 편집 화면에서 계속 사용할 수 있습니다.",
       );
+    }
+    try {
+      saveInitialSnapshot(localStorage, schema);
+    } catch {
+      setNotice("최초 생성본 저장에 실패해 초기화 기능을 사용할 수 없습니다. 현재 작업은 유지됩니다.");
     }
     setCreating(false);
     setWorkspace(schema);
