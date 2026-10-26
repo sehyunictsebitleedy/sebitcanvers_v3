@@ -23,7 +23,8 @@ import {
 import "./App.css";
 import { Dashboard } from "./dashboard/Preview";
 import { createSample } from "./dashboard/samples";
-import { loadProject, saveInitialSnapshot, saveProject } from "./dashboard/storage";
+import { draftsStorageKey, loadProject, saveInitialSnapshot, saveProject } from "./dashboard/storage";
+import { deleteProject } from "./dashboard/deleteProject";
 import type { DashboardSchema } from "./dashboard/schema";
 import { dashboardSchema } from "./dashboard/schema";
 import "./dashboard/workspace.css";
@@ -70,7 +71,7 @@ const types = [
   },
 ];
 type Draft = { id: string; name: string; type: number; date: string };
-const storageKey = "sebit-canvers-drafts-v1";
+const storageKey = draftsStorageKey;
 const workspaceUrl = (id: string) => `#workspace/${encodeURIComponent(id)}`;
 function restoreWorkspace() {
   const hash = window.location.hash;
@@ -178,6 +179,7 @@ function App() {
   const [selected, setSelected] = useState(0);
   const [notice, setNotice] = useState(restored.notice);
   const dialog = useRef<HTMLDialogElement>(null);
+  const recentHeading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     if (!modal) return;
     const active = document.activeElement as HTMLElement | null;
@@ -244,6 +246,17 @@ function App() {
         "저장된 프로젝트를 복원할 수 없습니다. 기존 데이터는 유지했습니다. 새 프로젝트로 시작해 주세요.",
       );
     }
+  };
+  const removeDraft = (project: Draft) => {
+    if (!window.confirm(`“${project.name}” 프로젝트를 삭제할까요?\n현재 디자인·최초 생성본·이전 디자인 백업이 삭제되며 되돌릴 수 없습니다. 다른 탭에 열려 있다면 먼저 닫아 주세요. 업로드 이미지는 공유 데이터 보호를 위해 보관됩니다.`)) return;
+    try {
+      deleteProject(localStorage, project.id);
+      setNotice(`“${project.name}” 프로젝트를 삭제했습니다. 업로드 이미지는 보관됩니다.`);
+      requestAnimationFrame(() => recentHeading.current?.focus());
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "프로젝트 삭제에 실패했습니다. 브라우저 저장 설정을 확인해 주세요.");
+    }
+    setDrafts(readDrafts());
   };
   const startDashboard = (schema: DashboardSchema) => {
     const type = { analytics: 0, admin: 1, project: 3, monitoring: 4 }[
@@ -496,7 +509,7 @@ function App() {
           </section>
           <section className="container recent section" id="recent">
             <div className="section-heading">
-              <h2>최근 작업</h2>
+              <h2 ref={recentHeading} tabIndex={-1}>최근 작업</h2>
               <p>이 브라우저에 저장한 프로젝트를 이어서 확인하세요.</p>
             </div>
             <p className="save-notice" role="status">
@@ -505,9 +518,9 @@ function App() {
             {availableDrafts.length ? (
               <div className="recent-grid">
                 {availableDrafts.map((draft) => (
+                  <div className="draft-entry" key={draft.id}>
                   <button
                     className="draft-card"
-                    key={draft.id}
                     onClick={() => {
                       openWorkspace(draft.type, draft);
                     }}
@@ -524,6 +537,8 @@ function App() {
                     <span className="draft-tag">작업 열기</span>
                     <ArrowUpRight size={17} />
                   </button>
+                  <button className="draft-delete" aria-label={`${draft.name} 프로젝트 삭제`} onClick={() => removeDraft(draft)}>삭제</button>
+                  </div>
                 ))}
               </div>
             ) : (

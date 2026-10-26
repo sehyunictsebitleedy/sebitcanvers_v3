@@ -1,7 +1,8 @@
 import { dashboardSchema } from "./schema";
 import type { DashboardSchema } from "./schema";
 export const schemaStorageKey = "sebit-dashboard-schema-v01:";
-const backupKey = "sebit-dashboard-backup-v1:";
+export const backupKey = "sebit-dashboard-backup-v1:";
+export const draftsStorageKey = "sebit-canvers-drafts-v1";
 export const initialSnapshotKey = "sebit-dashboard-initial-v1:";
 export function loadInitialSnapshot(storage: Pick<Storage, "getItem">, id: string) {
   const raw = storage.getItem(initialSnapshotKey + id);
