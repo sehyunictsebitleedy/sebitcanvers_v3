@@ -425,6 +425,26 @@ h1 > span {
   gap: 16px;
   margin-top: 24px;
 }
+.draft-entry {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+.draft-delete {
+  align-self: flex-end;
+  min-height: 36px;
+  padding: 6px 12px;
+  color: #e9a6ae;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+}
+.draft-delete:hover {
+  border-color: #81515c;
+  background: #31212b;
+}
 .draft-card {
   display: flex;
   align-items: center;
