@@ -30,7 +30,7 @@ import { SchemaPreview } from "../dashboard/Preview";
 import { AssetImage } from "../dashboard/AssetImage";
 import type { DashboardSchema } from "../dashboard/schema";
 import "./create.css";
-import { generateDashboard } from "./generation";
+import { generateDashboard, generationTimeoutMs, GenerationError } from "./generation";
 
 type Choice<T> = {
   value: T;
@@ -158,6 +158,16 @@ export function CreatePage({
     "idle",
   );
   const [generationError, setGenerationError] = useState("");
+  const [failureTitle, setFailureTitle] = useState("생성을 완료하지 못했어요");
+  const [elapsed, setElapsed] = useState(0);
+  const [cancelNotice, setCancelNotice] = useState("");
+  const startedAt = useRef(0);
+  useEffect(() => {
+    if (generation !== "pending") return;
+    const tick = () => setElapsed(Math.floor((Date.now() - startedAt.current) / 1000));
+    const timer = window.setInterval(tick, 1000);
+    return () => window.clearInterval(timer);
+  }, [generation]);
   useEffect(() => () => request.current?.abort(), []);
   const uploadVersion = useRef(0);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -281,11 +291,14 @@ export function CreatePage({
     setIssues([]);
     const controller = new AbortController();
     request.current = controller;
+    setCancelNotice("");
     if (ai) {
+      startedAt.current = Date.now();
+      setElapsed(0);
       setGeneration("pending");
       setGenerationError("");
     }
-    const timer = setTimeout(() => controller.abort("timeout"), 125000);
+    const timer = setTimeout(() => controller.abort("timeout"), generationTimeoutMs);
     try {
       if (
         options.mainVisual.enabled &&
@@ -296,6 +309,7 @@ export function CreatePage({
           "저장된 이미지가 없습니다. 이미지를 교체하거나 제거해 주세요.",
         );
       persist(options);
+      if (controller.signal.aborted || request.current !== controller) return;
       const schema = ai
         ? await generateDashboard(options, controller.signal)
         : buildDashboard(
@@ -303,12 +317,15 @@ export function CreatePage({
             crypto.randomUUID(),
             new Date().toISOString(),
           );
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted || request.current !== controller) return;
       onStart(schema);
     } catch (error) {
+      if (request.current !== controller) return;
       if (controller.signal.aborted && controller.signal.reason !== "timeout")
         return;
       if (ai) {
+        const kind = controller.signal.reason === "timeout" ? "timeout" : error instanceof GenerationError ? error.kind : "server";
+        setFailureTitle(kind === "timeout" ? "생성 대기 시간이 초과됐어요" : kind === "connection" ? "생성 서버에 연결하지 못했어요" : kind === "response" ? "생성 결과를 확인하지 못했어요" : "생성을 완료하지 못했어요");
         setGenerationError(
           controller.signal.aborted
             ? "생성 시간이 초과되었습니다. 다시 시도해 주세요."
@@ -325,8 +342,11 @@ export function CreatePage({
       ]);
     } finally {
       clearTimeout(timer);
-      setBusy(false);
-      lock.current = false;
+      if (request.current === controller) {
+        request.current = null;
+        setBusy(false);
+        lock.current = false;
+      }
     }
   };
   const selectedType = dashboardTypes.find((item) => item.id === options.type)!;
@@ -340,12 +360,16 @@ export function CreatePage({
         <h1>
           {generation === "pending"
             ? "대시보드를 만들고 있어요"
-            : "생성을 완료하지 못했어요"}
+            : failureTitle}
         </h1>
         <p>
           {options.name} · {selectedType.name} · 선택 조건과 추가 요청으로 샘플
           데이터를 구성합니다.
         </p>
+        <p role="timer" aria-live="off">경과 시간 {elapsed}초</p>
+        {generation === "pending" && <p role="status">{elapsed >= 60
+          ? "예상보다 오래 걸리고 있습니다. 계속 기다리거나 취소한 뒤 다시 시도할 수 있습니다."
+          : "생성에는 보통 수십 초가 걸리며 요청에 따라 더 오래 걸릴 수 있습니다."} 최대 125초 동안 응답을 기다립니다.</p>}
         <ol className="generation-stages">
           <li>선택 조건 확인 완료</li>
           <li aria-current="step">
@@ -380,6 +404,10 @@ export function CreatePage({
             className="button secondary"
             onClick={() => {
               request.current?.abort();
+              request.current = null;
+              lock.current = false;
+              setBusy(false);
+              setCancelNotice(generation === "pending" ? "생성을 취소했습니다. 선택 조건은 유지되며, 취소한 요청의 결과는 적용하지 않습니다." : "");
               setGeneration("idle");
               setIssues([]);
             }}
@@ -396,6 +424,7 @@ export function CreatePage({
     );
   return (
     <main className="create-page container" id="main">
+      {cancelNotice && <p className="save-notice" role="status">{cancelNotice}</p>}
       <button className="create-back" onClick={onHome}>
         <ArrowLeft size={15} />
         {initialOptions ? "기존 디자인으로 돌아가기" : "홈으로"}
