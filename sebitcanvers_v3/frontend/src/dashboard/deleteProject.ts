@@ -1,4 +1,4 @@
-import { backupKey, draftsStorageKey, initialSnapshotKey, schemaStorageKey } from "./storage";
+import { backupKey, deletedProjectKey, draftsStorageKey, initialSnapshotKey, schemaStorageKey } from "./storage";
 
 type ProjectStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
@@ -6,11 +6,11 @@ type ProjectStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 // Images are deliberately retained: other projects and open editors may share them.
 export function deleteProject(storage: ProjectStorage, id: string) {
   if (!id) throw new Error("삭제할 프로젝트를 확인할 수 없습니다.");
-  const keys = [draftsStorageKey, schemaStorageKey + id, initialSnapshotKey + id, backupKey + id];
+  const keys = [deletedProjectKey + id, draftsStorageKey, schemaStorageKey + id, initialSnapshotKey + id, backupKey + id];
   const before = keys.map(key => [key, storage.getItem(key)] as const);
   let list: unknown;
   try {
-    list = JSON.parse(before[0][1] ?? "[]");
+    list = JSON.parse(before[1][1] ?? "[]");
   } catch {
     throw new Error("프로젝트 목록이 손상되어 삭제하지 않았습니다.");
   }
@@ -18,10 +18,12 @@ export function deleteProject(storage: ProjectStorage, id: string) {
   const next = list.filter(item => !item || typeof item !== "object" || item.id !== id);
   const changed: (readonly [string, string | null])[] = [];
   try {
-    // Write the smaller list first, so a blocked/quota-failing write removes nothing.
-    storage.setItem(draftsStorageKey, JSON.stringify(next));
+    // Mark first to reject stale editors and late async results. Roll back last.
+    storage.setItem(keys[0], "deleted");
     changed.push(before[0]);
-    for (const entry of before.slice(1)) {
+    storage.setItem(draftsStorageKey, JSON.stringify(next));
+    changed.push(before[1]);
+    for (const entry of before.slice(2)) {
       storage.removeItem(entry[0]);
       changed.push(entry);
     }

@@ -31,7 +31,7 @@ test("backup failure or replacement save failure preserves the current saved des
         values.set(key, value);
       } };
     const first = buildDashboard(defaultOptions(), "original", "2026-01-01T00:00:00.000Z");
-    saveProject({ setItem: (key, value) => { values.set(key, value); } }, first);
+    saveProject({ getItem: storage.getItem, setItem: (key, value) => { values.set(key, value); } }, first);
     assert.throws(() => replaceProject(storage, first, first), /quota/);
     assert.deepEqual(loadProject(storage, first.project.id), first);
   }

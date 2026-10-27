@@ -23,7 +23,8 @@ import {
 import "./App.css";
 import { Dashboard } from "./dashboard/Preview";
 import { createSample } from "./dashboard/samples";
-import { draftsStorageKey, loadProject, saveInitialSnapshot, saveProject } from "./dashboard/storage";
+import { deletedProjectKey, draftsStorageKey, loadProject, saveInitialSnapshot, saveProject } from "./dashboard/storage";
+import { requestImageCleanup, takeCleanupNotice } from "./create/storageSession";
 import { deleteProject } from "./dashboard/deleteProject";
 import type { DashboardSchema } from "./dashboard/schema";
 import { dashboardSchema } from "./dashboard/schema";
@@ -99,6 +100,7 @@ function readDrafts(): Draft[] {
             (item): item is Draft =>
               !!item &&
               typeof item.id === "string" &&
+              localStorage.getItem(deletedProjectKey + item.id) === null &&
               typeof item.name === "string" &&
               typeof item.date === "string" &&
               Number.isInteger(item.type) &&
@@ -177,9 +179,23 @@ function App() {
   );
   const [modal, setModal] = useState<"preview" | null>(null);
   const [selected, setSelected] = useState(0);
-  const [notice, setNotice] = useState(restored.notice);
+  const [notice, setNotice] = useState(() => restored.notice || takeCleanupNotice());
   const dialog = useRef<HTMLDialogElement>(null);
   const recentHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    const syncStorage = (event: StorageEvent) => {
+      if (event.storageArea !== localStorage) return;
+      setDrafts(readDrafts());
+      if (workspace && localStorage.getItem(deletedProjectKey + workspace.project.id) !== null) {
+        setWorkspace(null);
+        setCreating(false);
+        window.history.replaceState(null, "", "#");
+        setNotice("다른 탭에서 이 프로젝트를 삭제했습니다. 편집을 종료했으며 다시 저장하지 않습니다.");
+      }
+    };
+    window.addEventListener("storage", syncStorage);
+    return () => window.removeEventListener("storage", syncStorage);
+  }, [workspace]);
   useEffect(() => {
     if (!modal) return;
     const active = document.activeElement as HTMLElement | null;
@@ -248,7 +264,7 @@ function App() {
     }
   };
   const removeDraft = (project: Draft) => {
-    if (!window.confirm(`“${project.name}” 프로젝트를 삭제할까요?\n현재 디자인·최초 생성본·이전 디자인 백업이 삭제되며 되돌릴 수 없습니다. 다른 탭에 열려 있다면 먼저 닫아 주세요. 업로드 이미지는 공유 데이터 보호를 위해 보관됩니다.`)) return;
+    if (!window.confirm(`“${project.name}” 프로젝트를 삭제할까요?\n현재 디자인·최초 생성본·이전 디자인 백업이 삭제되며 되돌릴 수 없습니다. 다른 탭의 편집도 종료됩니다. 업로드 이미지는 별도 정리할 때까지 보관됩니다.`)) return;
     try {
       deleteProject(localStorage, project.id);
       setNotice(`“${project.name}” 프로젝트를 삭제했습니다. 업로드 이미지는 보관됩니다.`);
@@ -269,7 +285,7 @@ function App() {
         type,
         date: schema.project.updatedAt,
       },
-      ...drafts,
+      ...readDrafts(),
     ];
     setDrafts(next);
     try {
@@ -515,6 +531,11 @@ function App() {
             <p className="save-notice" role="status">
               {notice}
             </p>
+            <button className="button secondary" onClick={() => {
+              if (!window.confirm("사용하지 않는 업로드 이미지를 정리할까요? 화면을 새로고침하며, 저장된 프로젝트·백업·생성 조건에서 사용하는 이미지는 보존합니다. 다른 서비스 탭은 먼저 닫아 주세요.")) return;
+              try { requestImageCleanup(); }
+              catch { setNotice("이미지 정리를 시작하지 못했습니다. 브라우저 저장 설정을 확인해 주세요."); }
+            }}>사용하지 않는 이미지 정리</button>
             {availableDrafts.length ? (
               <div className="recent-grid">
                 {availableDrafts.map((draft) => (
