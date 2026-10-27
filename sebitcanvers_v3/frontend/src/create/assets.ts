@@ -23,6 +23,27 @@ export async function getAsset(id: string): Promise<Blob | null> {
     };
   });
 }
+// Called only while the application holds its exclusive cleanup lock.
+// A single IDB transaction makes an aborted cleanup leave all images intact.
+export async function removeUnusedAssets(referenced: ReadonlySet<string>): Promise<number> {
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("images", "readwrite");
+    let removed = 0;
+    const request = tx.objectStore("images").openCursor();
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (!cursor) return;
+      if (typeof cursor.key === "string" && !referenced.has(cursor.key)) {
+        cursor.delete();
+        removed++;
+      }
+      cursor.continue();
+    };
+    tx.oncomplete = () => { db.close(); resolve(removed); };
+    tx.onabort = () => { db.close(); reject(new Error("이미지 정리에 실패했습니다. 이미지는 삭제하지 않았습니다.")); };
+  });
+}
 export async function saveImage(file: File): Promise<string> {
   if (
     file.size > 2 * 1024 * 1024 ||

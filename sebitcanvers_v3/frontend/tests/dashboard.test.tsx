@@ -192,6 +192,7 @@ test("storage round trip validates loaded data and propagates quota errors", () 
   assert.throws(() =>
     saveProject(
       {
+        getItem: storage.getItem,
         setItem() {
           throw new Error("quota");
         },
