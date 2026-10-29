@@ -56,6 +56,20 @@ export function createApi(config: Config, provider?: Provider) {
       });
       return;
     }
+    if (req.url === "/api/usage" && req.method === "GET") {
+      if (req.headers.origin && ![config.origin, ...(config.allowedOrigins ?? [])].includes(req.headers.origin)) {
+        send(403, { code: "ORIGIN", error: "허용되지 않은 접속 주소입니다." });
+        return;
+      }
+      try {
+        if (!config.usage) throw new Error("Usage store missing");
+        const identity = config.usage.identity(req.headers.cookie);
+        const usage = config.usage.snapshot(identity.id, req.socket.remoteAddress ?? "unknown");
+        if (identity.cookie) res.setHeader("Set-Cookie", identity.cookie + (config.origin.startsWith("https:") ? "; Secure" : ""));
+        send(200, usage);
+      } catch { send(503, { code: "USAGE_UNAVAILABLE", error: "사용량을 확인하지 못했습니다. 잠시 후 다시 확인해 주세요." }); }
+      return;
+    }
     const isEdit = req.url === "/api/edit";
     if ((!isEdit && req.url !== "/api/generate") || req.method !== "POST") {
       send(404, { error: "요청 경로를 찾을 수 없습니다." });
