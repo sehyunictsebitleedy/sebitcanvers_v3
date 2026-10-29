@@ -5,6 +5,9 @@ import { ZodError } from "zod";
 import { ApiError, generate, openAIProvider } from "./generate";
 import type { Provider } from "./generate";
 import { editDashboard } from "./edit";
+import { UsageStore, usageDay } from "./usage";
+import { readyOptionsSchema } from "../../sebitcanvers_v3/frontend/src/create/contracts";
+import { editRequestSchema } from "../../sebitcanvers_v3/frontend/src/dashboard/aiPatch";
 
 export type Config = {
   key: string;
@@ -15,6 +18,7 @@ export type Config = {
   rateLimit: number;
   concurrency: number;
   maintenance: boolean;
+  usage?: UsageStore;
 };
 async function body(req: IncomingMessage, limit: number) {
   const chunks: Buffer[] = [];
@@ -58,6 +62,7 @@ export function createApi(config: Config, provider?: Provider) {
       return;
     }
     let counted = false;
+    let reservation: string | undefined;
     const controller = new AbortController();
     const cancel = () => {
       if (!res.writableEnded) controller.abort();
@@ -106,11 +111,25 @@ export function createApi(config: Config, provider?: Provider) {
       active++;
       counted = true;
       const input = await body(req, isEdit ? 512000 : 32000);
+      (isEdit ? editRequestSchema : readyOptionsSchema).parse(input);
+      controller.signal.throwIfAborted();
+      if (config.usage) {
+        const identity = config.usage.identity(req.headers.cookie);
+        if (identity.cookie) res.setHeader("Set-Cookie", identity.cookie + (config.origin.startsWith("https:") ? "; Secure" : ""));
+        try {
+          reservation = config.usage.reserve(identity.id, ip, isEdit ? "edit" : "generate", config.timeout + 5000).id;
+        } catch (error) {
+          if (error instanceof ApiError) throw error;
+          throw new ApiError(503, "USAGE_UNAVAILABLE", "사용량 저장소를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+        }
+      }
       const result = await (isEdit ? editDashboard : generate)(
         input,
         provider ?? openAIProvider(config),
         controller.signal,
       );
+      controller.signal.throwIfAborted();
+      if (reservation) config.usage!.finish(reservation, true);
       send(200, { ...result, requestId });
       console.info(
         JSON.stringify({
@@ -139,10 +158,12 @@ export function createApi(config: Config, provider?: Provider) {
                   ? "AI 수정에 실패했습니다. 기존 작업은 유지됩니다. 다시 시도해 주세요."
                   : "대시보드를 생성하지 못했습니다. 다시 시도해 주세요.",
               );
+      if (failure.code === "DAILY_LIMIT") res.setHeader("Retry-After", String(Math.ceil((usageDay(Date.now()).resetAt - Date.now()) / 1000)));
       send(failure.status, {
         error: failure.message,
         code: failure.code,
         requestId,
+        ...(failure.code === "DAILY_LIMIT" ? { resetAt: new Date(usageDay(Date.now()).resetAt).toISOString() } : {}),
       });
       console.info(
         JSON.stringify({
@@ -154,6 +175,10 @@ export function createApi(config: Config, provider?: Provider) {
         }),
       );
     } finally {
+      if (reservation) {
+        try { config.usage!.finish(reservation, false); }
+        catch { console.error(JSON.stringify({ requestId, event: "usage-release-failed" })); }
+      }
       clearTimeout(timeout);
       res.off("close", cancel);
       if (counted) active--;
