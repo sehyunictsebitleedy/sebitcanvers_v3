@@ -8,6 +8,7 @@ import { editDashboard } from "./edit";
 import { UsageStore, usageDay } from "./usage";
 import { readyOptionsSchema } from "../../sebitcanvers_v3/frontend/src/create/contracts";
 import { editRequestSchema } from "../../sebitcanvers_v3/frontend/src/dashboard/aiPatch";
+import type { AiEvent, TelemetryStore, TokenUsage } from "./telemetry";
 
 export type Config = {
   key: string;
@@ -19,6 +20,7 @@ export type Config = {
   concurrency: number;
   maintenance: boolean;
   usage?: UsageStore;
+  telemetry?: TelemetryStore;
 };
 async function body(req: IncomingMessage, limit: number) {
   const chunks: Buffer[] = [];
@@ -77,13 +79,18 @@ export function createApi(config: Config, provider?: Provider) {
     }
     let counted = false;
     let reservation: string | undefined;
+    let attempts = 0;
+    const record = (event: Omit<AiEvent, "requestId" | "kind">) => {
+      try { config.telemetry?.record({ ...event, requestId, kind: isEdit ? "edit" : "generate" }); }
+      catch { console.error(JSON.stringify({ requestId, event: "telemetry-write-failed" })); }
+    };
     const controller = new AbortController();
     const cancel = () => {
-      if (!res.writableEnded) controller.abort();
+      if (!res.writableEnded) controller.abort("cancelled");
     };
     res.on("close", cancel);
     const timeout = setTimeout(() => {
-      controller.abort();
+      controller.abort("timeout");
       if (!req.complete) {
         send(408, {
           error: "요청 시간이 초과되었습니다.",
@@ -137,14 +144,29 @@ export function createApi(config: Config, provider?: Provider) {
           throw new ApiError(503, "USAGE_UNAVAILABLE", "사용량 저장소를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.");
         }
       }
+      let tokens: TokenUsage | null = null;
+      const source = provider ?? openAIProvider(config, fetch, value => { tokens = value; });
+      const observed: Provider = async (prompt, signal) => {
+        const began = Date.now();
+        const attempt = ++attempts;
+        tokens = null;
+        let ok = false;
+        let code: string | null = null;
+        try { const output = await source(prompt, signal); ok = true; return output; }
+        catch (error) {
+          code = signal.aborted ? signal.reason === "cancelled" ? "CANCELLED" : "TIMEOUT" : error instanceof ApiError ? error.code : "PROVIDER_FAILED";
+          throw error;
+        } finally { record({ phase: "provider", attempt, ok, code, ms: Date.now() - began, tokens }); }
+      };
       const result = await (isEdit ? editDashboard : generate)(
         input,
-        provider ?? openAIProvider(config),
+        observed,
         controller.signal,
       );
       controller.signal.throwIfAborted();
       if (reservation) config.usage!.finish(reservation, true);
       send(200, { ...result, requestId });
+      record({ phase: "request", attempt: attempts, ok: true, code: null, ms: Date.now() - started });
       console.info(
         JSON.stringify({
           requestId,
@@ -158,7 +180,7 @@ export function createApi(config: Config, provider?: Provider) {
       const failure = controller.signal.aborted
         ? new ApiError(
             504,
-            "TIMEOUT",
+            controller.signal.reason === "cancelled" ? "CANCELLED" : "TIMEOUT",
             "생성 시간이 초과되거나 취소되었습니다. 다시 시도해 주세요.",
           )
         : error instanceof ApiError
@@ -179,6 +201,7 @@ export function createApi(config: Config, provider?: Provider) {
         requestId,
         ...(failure.code === "DAILY_LIMIT" ? { resetAt: new Date(usageDay(Date.now()).resetAt).toISOString() } : {}),
       });
+      record({ phase: "request", attempt: attempts, ok: false, code: failure.code, ms: Date.now() - started });
       console.info(
         JSON.stringify({
           requestId,

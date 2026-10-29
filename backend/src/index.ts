@@ -1,5 +1,6 @@
 import { createApi } from "./server";
 import { UsageStore } from "./usage";
+import { TelemetryStore } from "./telemetry";
 const integer = (name: string, fallback: number, max: number) => {
   const value = Number(process.env[name] ?? fallback);
   if (!Number.isInteger(value) || value < 1 || value > max)
@@ -16,6 +17,7 @@ createApi({
   rateLimit: integer("AI_RATE_LIMIT", 5, 100),
   concurrency: integer("AI_CONCURRENCY", 2, 10),
   maintenance: process.env.AI_MAINTENANCE === "true",
+  telemetry: new TelemetryStore(process.env.AI_TELEMETRY_DB ?? "./data/ai-events.sqlite"),
   usage: new UsageStore(process.env.AI_USAGE_DB ?? "./data/ai-usage.sqlite", {
     generate: integer("AI_DAILY_GENERATE", 5, 10000),
     edit: integer("AI_DAILY_EDIT", 20, 10000),
