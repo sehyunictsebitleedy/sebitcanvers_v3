@@ -23,6 +23,9 @@ export function AiEditDrawer({
   const [scope, setScope] = useState("all");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [elapsed, setElapsed] = useState(0);
+  const startedAt = useRef(0);
   const [summary, setSummary] = useState<string[]>([]);
   const dialog = useRef<HTMLDialogElement>(null);
   const controller = useRef<AbortController | null>(null);
@@ -32,8 +35,22 @@ export function AiEditDrawer({
     .find((c) => c.id === selectedId);
   useEffect(() => {
     dialog.current?.showModal();
-    return () => controller.current?.abort();
+    return () => { controller.current?.abort(); controller.current = null; };
   }, []);
+  useEffect(() => {
+    if (!pending) return;
+    const timer = window.setInterval(() => setElapsed(Math.floor((Date.now() - startedAt.current) / 1000)), 1000);
+    return () => window.clearInterval(timer);
+  }, [pending]);
+  const cancel = () => {
+    controller.current?.abort();
+    controller.current = null;
+    locked.current = false;
+    setPending(false);
+    onBusy(false);
+    setError("");
+    setNotice("수정을 취소했습니다. 기존 작업과 수정 요청은 유지되며, 취소한 결과는 적용하지 않습니다.");
+  };
   const submit = async () => {
     if (locked.current) return;
     if (!instruction.trim()) {
@@ -44,6 +61,9 @@ export function AiEditDrawer({
     setPending(true);
     onBusy(true);
     setError("");
+    setNotice("");
+    startedAt.current = Date.now();
+    setElapsed(0);
     setSummary([]);
     const base = schema;
     const revision = crypto.randomUUID();
@@ -62,20 +82,26 @@ export function AiEditDrawer({
           baseRevision: revision,
           ...(targetId ? { targetId } : {}),
         }),
+      }).catch((error: unknown) => {
+        if (abort.signal.aborted) throw error;
+        throw new Error("AI 수정 서버에 연결하지 못했습니다. 연결 상태를 확인한 뒤 다시 적용해 주세요. 기존 작업은 유지됩니다.");
       });
       const result = await response.json().catch(() => {
         throw new Error(
           "수정 서버 응답이 올바르지 않습니다. 연결 상태를 확인해 주세요.",
         );
       });
-      if (!response.ok)
+      if (!response.ok) {
+        if (result?.code === "TIMEOUT" || result?.code === "REQUEST_TIMEOUT" || response.status === 504)
+          throw new Error("서버의 수정 대기 시간이 초과되었습니다. 기존 작업과 요청은 유지됩니다. 잠시 후 다시 적용해 주세요.");
         throw new Error(
-          typeof result.error === "string"
+          typeof result?.error === "string"
             ? result.error
             : "AI 수정에 실패했습니다.",
         );
-      if (abort.signal.aborted) return;
-      if (result.baseRevision !== revision)
+      }
+      if (abort.signal.aborted || controller.current !== abort) return;
+      if (result?.baseRevision !== revision)
         throw new Error(
           "수정 기준이 일치하지 않습니다. 최신 상태에서 다시 요청해 주세요.",
         );
@@ -98,6 +124,7 @@ export function AiEditDrawer({
         );
       setSummary(applied.summary);
     } catch (err) {
+      if (controller.current !== abort) return;
       setError(
         abort.signal.aborted
           ? abort.signal.reason === "timeout"
@@ -109,10 +136,12 @@ export function AiEditDrawer({
       );
     } finally {
       clearTimeout(timer);
-      controller.current = null;
-      locked.current = false;
-      setPending(false);
-      onBusy(false);
+      if (controller.current === abort) {
+        controller.current = null;
+        locked.current = false;
+        setPending(false);
+        onBusy(false);
+      }
     }
   };
   return (
@@ -122,7 +151,7 @@ export function AiEditDrawer({
       aria-labelledby="ai-edit-title"
       onCancel={(event) => {
         event.preventDefault();
-        if (pending) controller.current?.abort();
+        if (pending) cancel();
         else onClose();
       }}
     >
@@ -172,19 +201,22 @@ export function AiEditDrawer({
         </fieldset>
       </form>
       {pending && (
-        <div role="status">
-          <p>요청을 분석하고 변경 내용을 검증하고 있습니다.</p>
+        <div>
+          <p role="timer" aria-live="off">경과 시간 {elapsed}초</p>
+          <p role="status">{elapsed >= 60 ? "예상보다 오래 걸리고 있습니다. 기다리거나 취소한 뒤 다시 적용할 수 있습니다." : "요청을 분석하고 변경 내용을 검증하고 있습니다."} 최대 125초 동안 응답을 기다립니다.</p>
           <button
             className="button secondary"
-            onClick={() => controller.current?.abort()}
+            onClick={cancel}
           >
             수정 취소
           </button>
         </div>
       )}
+      {notice && <p role="status">{notice}</p>}
       {error && (
         <p className="form-error" role="alert">
           {error}
+          {" "}수정 요청을 유지한 채 AI 수정 적용 버튼으로 다시 시도할 수 있습니다.
         </p>
       )}
       {summary.length > 0 && (
@@ -205,7 +237,8 @@ export function AiEditDrawer({
           onClick={() => {
             onUndo();
             setSummary([]);
-            setError("최근 변경을 실행 취소했습니다.");
+            setError("");
+            setNotice("최근 변경을 실행 취소했습니다.");
           }}
         >
           최근 변경 실행 취소
