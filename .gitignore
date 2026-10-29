@@ -9,3 +9,8 @@ dist-ssr/
 .DS_Store
 test-results/
 playwright-report/
+backend/data/
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
