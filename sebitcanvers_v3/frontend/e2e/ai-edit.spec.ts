@@ -165,7 +165,7 @@ test("pending edit locks conflicting actions and cancellation ignores late resul
   await expect(page.getByLabel("수정 요청", { exact: true })).toBeDisabled();
   await page.getByRole("button", { name: "수정 취소", exact: true }).click();
   release();
-  await expect(page.getByRole("alert")).toContainText("취소");
+  await expect(page.getByText(/수정을 취소했습니다/)).toBeVisible();
   expect(await stored(page)).toEqual(baseline);
   await page.getByRole("button", { name: "닫기", exact: true }).click();
   await expect(
