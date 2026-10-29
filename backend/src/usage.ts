@@ -65,5 +65,25 @@ export class UsageStore {
     const result = this.db.prepare("UPDATE usage SET state='success' WHERE id=? AND state='pending' AND expires>?").run(id, now);
     if (result.changes !== 1) throw new Error("Usage reservation expired");
   }
+  snapshot(subject: string, ip: string, now = Date.now()) {
+    const { day, resetAt } = usageDay(now);
+    const hash = (value: string) => createHmac("sha256", this.secret).update(value).digest("hex");
+    const user = hash(subject);
+    const address = hash(ip);
+    const rows = this.db.prepare(`SELECT kind,
+      SUM(CASE WHEN subject=? AND state='success' THEN 1 ELSE 0 END) AS used,
+      SUM(CASE WHEN subject=? AND state='pending' THEN 1 ELSE 0 END) AS pending,
+      SUM(CASE WHEN ip=? THEN 1 ELSE 0 END) AS ipCount
+      FROM usage WHERE day=? AND (subject=? OR ip=?) AND (state='success' OR expires>?) GROUP BY kind
+    `).all(user, user, address, day, user, address, now);
+    const status = (kind: Kind) => {
+      const row = rows.find(row => row.kind === kind);
+      const used = Number(row?.used ?? 0);
+      const pending = Number(row?.pending ?? 0);
+      return { limit: this.limits[kind], used, pending, remaining: Math.max(0, this.limits[kind] - used - pending),
+        ipLimited: Number(row?.ipCount ?? 0) >= this.limits[kind === "generate" ? "ipGenerate" : "ipEdit"] };
+    };
+    return { observedAt: new Date(now).toISOString(), resetAt: new Date(resetAt).toISOString(), generate: status("generate"), edit: status("edit") };
+  }
   close() { this.db.close(); }
 }

@@ -31,6 +31,7 @@ import { AssetImage } from "../dashboard/AssetImage";
 import type { DashboardSchema } from "../dashboard/schema";
 import "./create.css";
 import { generateDashboard, generationTimeoutMs, GenerationError } from "./generation";
+import { UsageNotice } from "../dashboard/UsageNotice";
 
 type Choice<T> = {
   value: T;
@@ -367,6 +368,7 @@ export function CreatePage({
           데이터를 구성합니다.
         </p>
         <p role="timer" aria-live="off">경과 시간 {elapsed}초</p>
+        <UsageNotice kind="generate" pending={generation === "pending"} />
         {generation === "pending" && <p role="status">{elapsed >= 60
           ? "예상보다 오래 걸리고 있습니다. 계속 기다리거나 취소한 뒤 다시 시도할 수 있습니다."
           : "생성에는 보통 수십 초가 걸리며 요청에 따라 더 오래 걸릴 수 있습니다."} 최대 125초 동안 응답을 기다립니다.</p>}
@@ -453,6 +455,7 @@ export function CreatePage({
         </ol>
       </div>
       <div className="create-layout">
+        <div style={{ gridColumn: "1 / -1" }}><UsageNotice kind="generate" /></div>
         <form className="create-form" onSubmit={submit} noValidate>
           <fieldset disabled={busy} className="create-form-fields">
             <section className="create-panel">

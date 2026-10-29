@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { applyAiPatch } from "./aiPatch";
 import type { DashboardSchema } from "./schema";
+import { UsageNotice } from "./UsageNotice";
 
 export function AiEditDrawer({
   schema,
@@ -160,6 +161,7 @@ export function AiEditDrawer({
         <h2 id="ai-edit-title">어떻게 바꿔볼까요?</h2>
         <p>현재 디자인과 데이터를 기준으로 요청한 부분을 수정합니다.</p>
       </header>
+      <UsageNotice kind="edit" pending={pending} />
       <form
         onSubmit={(e) => {
           e.preventDefault();

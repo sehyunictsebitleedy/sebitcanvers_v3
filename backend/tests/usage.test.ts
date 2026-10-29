@@ -10,6 +10,52 @@ import { createSample } from "../../sebitcanvers_v3/frontend/src/dashboard/sampl
 import { defaultOptions } from "../../sebitcanvers_v3/frontend/src/create/contracts";
 
 const limits = { generate: 1, edit: 2, ipGenerate: 2, ipEdit: 3 };
+test("usage snapshots report personal counts, active reservations, IP restriction and day reset without consuming quota", () => {
+  const usage = new UsageStore(":memory:", limits);
+  const now = Date.parse("2026-10-29T14:59:59Z");
+  try {
+    assert.equal(usage.snapshot("me", "ip", now).generate.remaining, 1);
+    const own = usage.reserve("me", "ip", "generate", 500, now);
+    const other = usage.reserve("other", "ip", "generate", 500, now);
+    assert.deepEqual(usage.snapshot("me", "ip", now).generate, { limit: 1, used: 0, pending: 1, remaining: 0, ipLimited: true });
+    usage.finish(own.id, true, now);
+    usage.finish(other.id, false, now);
+    assert.deepEqual(usage.snapshot("me", "ip", now).generate, { limit: 1, used: 1, pending: 0, remaining: 0, ipLimited: false });
+    usage.reserve("me", "ip", "edit", 300, now);
+    assert.equal(usage.snapshot("me", "ip", now + 400).edit.pending, 0);
+    assert.equal(usage.snapshot("me", "ip", now + 1000).generate.remaining, 1);
+    assert.equal(usage.snapshot("different", "elsewhere", now).generate.used, 0);
+  } finally { usage.close(); }
+});
+test("GET usage establishes a private identity, rejects other origins and never invokes AI or consumes quota", async () => {
+  const usage = new UsageStore(":memory:", limits);
+  let calls = 0;
+  const server = createApi({ key: "test", model: "test", origin: "http://localhost:5173", timeout: 1000, rateLimit: 1, concurrency: 1, maintenance: false, usage }, async () => { calls++; throw new Error("Unexpected provider call"); });
+  server.listen(0, "127.0.0.1"); await once(server, "listening");
+  const url = `http://127.0.0.1:${(server.address() as { port: number }).port}/api/usage`;
+  try {
+    const first = await fetch(url);
+    assert.equal(first.status, 200);
+    assert.equal(first.headers.get("cache-control"), "no-store");
+    const cookie = first.headers.get("set-cookie")!;
+    assert.match(cookie, /HttpOnly/);
+    const id = usage.identity(cookie).id;
+    usage.reserve(id, "127.0.0.1", "generate", 10000);
+    for (let i = 0; i < 3; i++) {
+      const response = await fetch(url, { headers: { Cookie: cookie.split(";")[0] } });
+      assert.equal(response.status, 200);
+      const data = await response.json();
+      assert.equal(data.generate.remaining, 0);
+      assert.equal(data.generate.pending, 1);
+      assert.equal(data.edit.remaining, 2);
+      assert.equal(JSON.stringify(data).includes(id), false);
+    }
+    assert.equal((await fetch(url, { headers: { Origin: "https://evil.example" } })).status, 403);
+    assert.equal(calls, 0);
+    usage.close();
+    assert.equal((await fetch(url)).status, 503);
+  } finally { server.close(); server.closeAllConnections(); }
+});
 test("daily reservations separate kinds, release failures, expire crashes and reset at Korean midnight", () => {
   const db = new UsageStore(":memory:", limits);
   const now = Date.parse("2026-10-29T14:59:59Z");
