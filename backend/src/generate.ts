@@ -4,6 +4,8 @@ import { readyOptionsSchema } from "../../sebitcanvers_v3/frontend/src/create/co
 import { buildDashboard } from "../../sebitcanvers_v3/frontend/src/create/buildDashboard";
 import { dashboardSchema } from "../../sebitcanvers_v3/frontend/src/dashboard/schema";
 import type { DashboardSchema } from "../../sebitcanvers_v3/frontend/src/dashboard/schema";
+import { tokenUsage } from "./telemetry";
+import type { TokenUsage } from "./telemetry";
 
 export class ApiError extends Error {
   constructor(
@@ -18,6 +20,7 @@ export type Provider = (prompt: string, signal: AbortSignal) => Promise<string>;
 export function openAIProvider(
   config: { key: string; model: string },
   request: typeof fetch = fetch,
+  onUsage?: (usage: TokenUsage) => void,
 ): Provider {
   return async (prompt, signal) => {
     const response = await request("https://api.openai.com/v1/responses", {
@@ -44,9 +47,11 @@ export function openAIProvider(
         "AI 서비스에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.",
       );
     const data = (await response.json()) as {
+      usage?: unknown;
       status?: string;
       output?: { content?: { type: string; text?: string }[] }[];
     };
+    onUsage?.(tokenUsage(data?.usage));
     if (data.status !== "completed")
       throw new ApiError(
         502,
