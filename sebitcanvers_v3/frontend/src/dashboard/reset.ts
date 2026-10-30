@@ -7,6 +7,7 @@ export async function resetProject(
   storage: Pick<Storage, "getItem" | "setItem">,
   current: DashboardSchema,
   readAsset = getAsset,
+  canWrite = () => true,
 ) {
   const original = loadInitialSnapshot(storage, current.project.id);
   if (!original) throw new Error("최초 생성본이 없어 초기화할 수 없습니다.");
@@ -20,5 +21,6 @@ export async function resetProject(
     }
   }
   // Do not modify the current project unless validation and backup both succeed.
+  if (!canWrite()) throw new Error("편집 권한이 해제되어 초기화 결과를 저장하지 않았습니다.");
   return replaceProject(storage, current, editSnapshot(original, {}));
 }

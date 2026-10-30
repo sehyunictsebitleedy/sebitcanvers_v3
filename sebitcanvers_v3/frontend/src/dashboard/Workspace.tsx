@@ -21,10 +21,12 @@ export function Workspace({
   initial,
   onBack,
   startInPreview = false,
+  canWrite = () => true,
 }: {
   initial: DashboardSchema;
   onBack: () => void;
   startInPreview?: boolean;
+  canWrite?: () => boolean;
 }) {
   const [schema, setSchema] = useState(() =>
     !startInPreview && ["finalized", "exported"].includes(initial.status)
@@ -66,6 +68,7 @@ export function Workspace({
   const lock = useRef(false);
   const initialRef = useRef(schema);
   const save = (data: DashboardSchema) => {
+    if (!canWrite()) return false;
     try {
       saveProject(localStorage, data);
       setUnsaved(false);
@@ -79,8 +82,9 @@ export function Workspace({
       return false;
     }
   };
+  const saveInitial = useRef(save);
   useEffect(() => {
-    save(initialRef.current);
+    saveInitial.current(initialRef.current);
   }, []);
   useEffect(() => {
     if (modal) dialog.current?.showModal();
@@ -97,6 +101,7 @@ export function Workspace({
     return () => window.removeEventListener("beforeunload", leave);
   }, [unsaved, busy]);
   const commit = (next: DashboardSchema, fromAi = false) => {
+    if (!canWrite()) return false;
     if (lock.current && !fromAi) return false;
     setPrevious(schema);
     setSchema(next);
@@ -242,6 +247,7 @@ export function Workspace({
       initialOptions={{ ...(schema.settings.selections ?? defaultOptions(dashboardTypes.find(type => type.key === schema.project.type)?.id)), name: schema.project.name }}
       onHome={() => setRegenerating(false)}
       onStart={(generated) => {
+        if (!canWrite()) throw new Error("편집 권한이 해제되어 재생성 결과를 저장하지 않았습니다.");
         try {
           const next = replaceProject(localStorage, schema, generated);
           acceptReplacement(next);
@@ -320,6 +326,7 @@ export function Workspace({
         </button>
         <button disabled={busy} onClick={() => setRegenerating(true)}>재생성</button>
         <button disabled={busy || !hasBackup} onClick={() => {
+          if (!canWrite()) return;
           if (!window.confirm("백업된 디자인으로 복원할까요? 현재 디자인은 새 백업으로 보관됩니다.")) return;
           try {
             const backup = loadBackup(localStorage, schema.project.id);
@@ -336,7 +343,7 @@ export function Workspace({
           setBusy(true);
           setResetBusy(true);
           try {
-            const next = await resetProject(localStorage, schema);
+            const next = await resetProject(localStorage, schema, undefined, canWrite);
             acceptReplacement(next);
             setExportStatus("최초 생성 상태로 초기화했습니다. ‘이전 디자인 복원’으로 초기화 전 작업을 되돌릴 수 있습니다.");
           } catch (error) {

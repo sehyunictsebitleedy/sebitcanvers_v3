@@ -8,9 +8,7 @@ test("deleting in one tab closes another editor and prevents restoring the delet
   const url = page.url();
   const other = await context.newPage();
   await other.goto(url);
-  await expect(other.locator(".workspace-preview")).toBeVisible();
-  await other.getByRole("button", { name: "편집으로 돌아가기" }).click();
-  await other.getByLabel("제목", { exact: true }).fill("다른 탭의 미적용 입력");
+  await expect(other.getByText(/다른 탭에서 이 프로젝트를 열고 있습니다/)).toBeVisible();
   await page.getByRole("button", { name: "홈", exact: true }).click();
   page.once("dialog", dialog => dialog.accept());
   await page.locator(".draft-delete").click();
