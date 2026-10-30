@@ -9,6 +9,7 @@ import { UsageStore, usageDay } from "./usage";
 import { readyOptionsSchema } from "../../sebitcanvers_v3/frontend/src/create/contracts";
 import { editRequestSchema } from "../../sebitcanvers_v3/frontend/src/dashboard/aiPatch";
 import type { AiEvent, TelemetryStore, TokenUsage } from "./telemetry";
+import { clientIpResolver } from "./clientIp";
 
 export type Config = {
   key: string;
@@ -21,6 +22,7 @@ export type Config = {
   maintenance: boolean;
   usage?: UsageStore;
   telemetry?: TelemetryStore;
+  trustedProxies?: string[];
 };
 async function body(req: IncomingMessage, limit: number) {
   const chunks: Buffer[] = [];
@@ -38,6 +40,7 @@ async function body(req: IncomingMessage, limit: number) {
   }
 }
 export function createApi(config: Config, provider?: Provider) {
+  const clientIp = clientIpResolver(config.trustedProxies);
   const clients = new Map<string, { count: number; until: number }>();
   let active = 0;
   return createServer(async (req, res) => {
@@ -66,10 +69,13 @@ export function createApi(config: Config, provider?: Provider) {
       try {
         if (!config.usage) throw new Error("Usage store missing");
         const identity = config.usage.identity(req.headers.cookie);
-        const usage = config.usage.snapshot(identity.id, req.socket.remoteAddress ?? "unknown");
+        const usage = config.usage.snapshot(identity.id, clientIp(req));
         if (identity.cookie) res.setHeader("Set-Cookie", identity.cookie + (config.origin.startsWith("https:") ? "; Secure" : ""));
         send(200, usage);
-      } catch { send(503, { code: "USAGE_UNAVAILABLE", error: "사용량을 확인하지 못했습니다. 잠시 후 다시 확인해 주세요." }); }
+      } catch (error) {
+        if (error instanceof ApiError) send(error.status, { code: error.code, error: error.message });
+        else send(503, { code: "USAGE_UNAVAILABLE", error: "사용량을 확인하지 못했습니다. 잠시 후 다시 확인해 주세요." });
+      }
       return;
     }
     const isEdit = req.url === "/api/edit";
@@ -116,8 +122,7 @@ export function createApi(config: Config, provider?: Provider) {
       const now = Date.now();
       for (const [key, value] of clients)
         if (value.until <= now) clients.delete(key);
-      // Do not trust arbitrary X-Forwarded-For headers. Single process limiter.
-      const ip = req.socket.remoteAddress ?? "unknown";
+      const ip = clientIp(req);
       const client = clients.get(ip) ?? { count: 0, until: now + 60000 };
       if (client.count >= config.rateLimit || active >= config.concurrency) {
         res.setHeader("Retry-After", "60");
