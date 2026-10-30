@@ -1,4 +1,4 @@
-import { backupKey, deletedProjectKey, draftsStorageKey, initialSnapshotKey, schemaStorageKey } from "./storage";
+import { backupKey, deletedProjectKey, draftsStorageKey, initialSnapshotKey, schemaStorageKey, recoveryStorageKey } from "./storage";
 
 type ProjectStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
@@ -6,7 +6,7 @@ type ProjectStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 // Images are deliberately retained: other projects and open editors may share them.
 export function deleteProject(storage: ProjectStorage, id: string) {
   if (!id) throw new Error("삭제할 프로젝트를 확인할 수 없습니다.");
-  const keys = [deletedProjectKey + id, draftsStorageKey, schemaStorageKey + id, initialSnapshotKey + id, backupKey + id];
+  const keys = [deletedProjectKey + id, draftsStorageKey, schemaStorageKey + id, initialSnapshotKey + id, backupKey + id, recoveryStorageKey + id];
   const before = keys.map(key => [key, storage.getItem(key)] as const);
   let list: unknown;
   try {
