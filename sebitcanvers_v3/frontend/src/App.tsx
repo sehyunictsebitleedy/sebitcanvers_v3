@@ -23,7 +23,8 @@ import {
 import "./App.css";
 import { Dashboard } from "./dashboard/Preview";
 import { createSample } from "./dashboard/samples";
-import { deletedProjectKey, draftsStorageKey, loadProject, saveInitialSnapshot, saveProject } from "./dashboard/storage";
+import { deletedProjectKey, draftsStorageKey, loadProject, saveInitialSnapshot, saveProject, storageFailureMessage } from "./dashboard/storage";
+import { RecoveryActions } from "./dashboard/RecoveryActions";
 import { requestImageCleanup, takeCleanupNotice } from "./create/storageSession";
 import { deleteProject } from "./dashboard/deleteProject";
 import type { DashboardSchema } from "./dashboard/schema";
@@ -84,10 +85,10 @@ function restoreWorkspace() {
     const schema = loadProject(localStorage, id);
     if (!schema) throw new Error("Missing project");
     return { schema, notice: "" };
-  } catch {
+  } catch (error) {
     return {
       schema: null,
-      notice: "열려 있던 프로젝트를 복원할 수 없습니다. 저장 데이터는 변경하지 않았습니다. 최근 작업에서 프로젝트를 다시 선택해 주세요.",
+      notice: "열려 있던 프로젝트를 복원할 수 없습니다. 저장 데이터는 변경하지 않았습니다. " + storageFailureMessage(error),
     };
   }
 }
@@ -257,14 +258,14 @@ function App() {
       setWorkspace(dashboardSchema.parse(sample));
       setCreating(false);
       window.history.pushState(null, "", workspaceUrl(sample.project.id));
-    } catch {
+    } catch (error) {
       setNotice(
-        "저장된 프로젝트를 복원할 수 없습니다. 기존 데이터는 유지했습니다. 새 프로젝트로 시작해 주세요.",
+        "저장된 프로젝트를 복원할 수 없습니다. " + storageFailureMessage(error),
       );
     }
   };
   const removeDraft = (project: Draft) => {
-    if (!window.confirm(`“${project.name}” 프로젝트를 삭제할까요?\n현재 디자인·최초 생성본·이전 디자인 백업이 삭제되며 되돌릴 수 없습니다. 다른 탭의 편집도 종료됩니다. 업로드 이미지는 별도 정리할 때까지 보관됩니다.`)) return;
+    if (!window.confirm(`“${project.name}” 프로젝트를 삭제할까요?\n현재 디자인·최초 생성본·이전 디자인 백업·복구 보관 원본이 삭제되며 되돌릴 수 없습니다. 다른 탭의 편집도 종료됩니다. 업로드 이미지는 별도 정리할 때까지 보관됩니다.`)) return;
     try {
       deleteProject(localStorage, project.id);
       setNotice(`“${project.name}” 프로젝트를 삭제했습니다. 업로드 이미지는 보관됩니다.`);
@@ -559,6 +560,7 @@ function App() {
                     <ArrowUpRight size={17} />
                   </button>
                   <button className="draft-delete" aria-label={`${draft.name} 프로젝트 삭제`} onClick={() => removeDraft(draft)}>삭제</button>
+                  <RecoveryActions id={draft.id} onRecovered={() => setDrafts(readDrafts())} />
                   </div>
                 ))}
               </div>

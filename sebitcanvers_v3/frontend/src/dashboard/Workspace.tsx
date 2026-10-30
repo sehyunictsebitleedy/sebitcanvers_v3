@@ -3,7 +3,7 @@ import { ArrowLeft, Download, Eye, Pencil, Undo2 } from "lucide-react";
 import { DashboardRenderer } from "./Renderer";
 import { dashboardSchema } from "./schema";
 import type { DashboardSchema } from "./schema";
-import { loadBackup, loadInitialSnapshot, replaceProject, saveProject } from "./storage";
+import { loadBackup, loadInitialSnapshot, replaceProject, saveProject, storageFailureMessage } from "./storage";
 import { resetProject } from "./reset";
 import { CreatePage } from "../create/CreatePage";
 import { dashboardTypes, defaultOptions } from "../create/contracts";
@@ -74,10 +74,10 @@ export function Workspace({
       setUnsaved(false);
       setStorageStatus("브라우저에 저장됨");
       return true;
-    } catch {
+    } catch (error) {
       setUnsaved(true);
       setStorageStatus(
-        "저장 실패: 현재 작업은 메모리에 유지됩니다. 다시 저장하거나 ZIP을 다운로드하세요.",
+        "저장 실패: 현재 작업은 메모리에 유지됩니다. " + storageFailureMessage(error),
       );
       return false;
     }

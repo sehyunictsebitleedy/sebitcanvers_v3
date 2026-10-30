@@ -432,6 +432,16 @@ h1 > span {
   align-items: stretch;
   gap: 4px;
 }
+.project-recovery {
+  padding: 10px;
+  border: 1px solid #2b3445;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #b9c5d9;
+}
+.project-recovery summary { cursor: pointer; }
+.project-recovery button { padding: 8px; margin: 4px 0; border-radius: 5px; border: 1px solid #44506a; background: #182233; }
+.project-recovery p { line-height: 1.6; overflow-wrap: anywhere; }
 .draft-delete {
   align-self: flex-end;
   min-height: 36px;
