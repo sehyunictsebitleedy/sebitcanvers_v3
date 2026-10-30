@@ -30,8 +30,8 @@ import type { DashboardSchema } from "./dashboard/schema";
 import { dashboardSchema } from "./dashboard/schema";
 import "./dashboard/workspace.css";
 const Workspace = lazy(() =>
-  import("./dashboard/Workspace").then((module) => ({
-    default: module.Workspace,
+  import("./dashboard/ProjectWorkspace").then((module) => ({
+    default: module.ProjectWorkspace,
   })),
 );
 

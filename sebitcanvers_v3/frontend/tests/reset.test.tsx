@@ -10,6 +10,20 @@ function memory() {
   return { values, getItem: (key: string) => values.get(key) ?? null,
     setItem: (key: string, value: string) => { values.set(key, value); } };
 }
+test("reset cannot save a late image result after its editor releases ownership", async () => {
+  const storage = memory();
+  const original = createSample();
+  original.mainVisual = { ...original.mainVisual, enabled: true, imageAssetId: "delayed-image" };
+  saveInitialSnapshot(storage, original);
+  saveProject(storage, original);
+  const before = new Map(storage.values);
+  let owns = true;
+  await assert.rejects(resetProject(storage, original, async () => {
+    owns = false;
+    return new Blob(["image"], { type: "image/png" });
+  }, () => owns), /편집 권한/);
+  assert.deepEqual(storage.values, before);
+});
 test("reset retains the immutable creation snapshot through edits and regeneration, and backs up current work", async () => {
   const storage = memory();
   const original = createSample();
