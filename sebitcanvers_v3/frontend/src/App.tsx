@@ -23,6 +23,7 @@ import {
 import "./App.css";
 import { InfoPage } from "./InfoPage";
 import { infoPageFromHash } from "./infoRoutes";
+import { CompanyContact } from "./CompanyContact";
 import { Dashboard } from "./dashboard/Preview";
 import { createSample } from "./dashboard/samples";
 import { deletedProjectKey, draftsStorageKey, loadProject, saveInitialSnapshot, saveProject, storageFailureMessage } from "./dashboard/storage";
@@ -605,7 +606,8 @@ function App() {
             <Brand />
           </a>
           <span>아이디어에서 대시보드까지.</span>
-          <small>© {year} SEbit. All rights reserved.</small>
+          <small>© {year} SEHYUNICT SEbit. All rights reserved.</small>
+          <a href="https://sehyunict.com" target="_blank" rel="noopener noreferrer">세현아이씨티<span className="sr-only">새 창</span></a>
           <a href="#guide">사용방법</a>
           <a href="#info/service">서비스 안내</a>
           <a href="#info/terms">이용약관</a>
@@ -619,6 +621,7 @@ function App() {
             <span className="sr-only">새 창</span>
           </a>
         </div>
+        <div className="container footer-contact"><CompanyContact /></div>
       </footer>
       {modal && (
         <dialog

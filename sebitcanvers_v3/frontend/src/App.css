@@ -691,3 +691,7 @@ legend {
     font-size: 13px;
   }
 }
+.company-contact { display: flex; flex-wrap: wrap; gap: 8px 18px; font-style: normal; font-size: 12px; line-height: 1.8; color: #aebbd0; }
+.company-contact a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.footer-contact { padding-top: 20px; margin-top: 20px; border-top: 1px solid #242c39; }
+.company-contact span { overflow-wrap: anywhere; }

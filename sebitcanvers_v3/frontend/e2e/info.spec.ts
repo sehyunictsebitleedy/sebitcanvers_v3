@@ -29,6 +29,10 @@ test("service guidance and licenses are available without AI requests at PC widt
   await page.getByText("라이선스 원문 보기", { exact: true }).click();
   await expect(page.locator(".license-text")).toContainText("Lucide");
   await expect(page.locator(".license-text")).toContainText("Cole Bemis");
+  const footer = page.locator(".site-footer");
+  await expect(footer).toContainText("동탄기흥로 557, 1901호");
+  await expect(footer.getByRole("link", { name: "asset.manager@sehyunict.com" })).toHaveAttribute("href", "mailto:asset.manager@sehyunict.com");
+  await expect(footer.getByRole("link", { name: "070-4047-8955" })).toHaveAttribute("href", "tel:07040478955");
   for (const width of [1280,1440,1920]) {
     await page.setViewportSize({width,height:1000});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
