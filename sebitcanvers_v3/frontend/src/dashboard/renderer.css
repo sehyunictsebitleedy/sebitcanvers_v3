@@ -526,3 +526,5 @@
 .schema-dashboard .db-heading-meta { text-align: right; flex-shrink: 0; }
 .schema-dashboard .db-heading .db-header-date { margin-top: 8px; font-size: 12px; color: var(--db-muted); }
 .schema-dashboard .db-header-date time { color: var(--db-text); font-variant-numeric: tabular-nums; }
+.schema-dashboard .db-kpi-heading { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.schema-dashboard .db-kpi-icon { flex-shrink: 0; }

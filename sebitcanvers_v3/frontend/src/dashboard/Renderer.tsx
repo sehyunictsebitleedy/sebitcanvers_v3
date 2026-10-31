@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { Activity, ChartNoAxesCombined, Target, Users, Wallet } from "lucide-react";
 import { validateDashboard } from "./schema";
 import { AssetImage } from "./AssetImage";
 import { NavigationIcon } from "./NavigationEditor";
@@ -281,11 +282,18 @@ function Content({ component, editing = false }: { component: DashboardComponent
         <p>{component.message}</p>
       </div>
     );
-  if (component.type === "kpi")
+  if (component.type === "kpi") {
+    const Icon = component.icon && component.icon !== "none"
+      ? { chart: ChartNoAxesCombined, users: Users, wallet: Wallet, target: Target, activity: Activity }[component.icon]
+      : null;
     return (
       <>
-        <h3>{component.title}</h3>
-        <p className="db-value">
+        <div className="db-kpi-heading">
+          <h3>{component.title}</h3>
+          {Icon && <Icon className="db-kpi-icon" aria-hidden="true" size={20}
+            style={{ color: component.color ?? "var(--db-primary)" }} />}
+        </div>
+        <p className="db-value" style={{ color: component.color ?? undefined }}>
           {component.value.toLocaleString("en-US", {
             maximumFractionDigits: 4,
           })}
@@ -297,6 +305,7 @@ function Content({ component, editing = false }: { component: DashboardComponent
         </p>
       </>
     );
+  }
   if (component.type === "chart")
     return (
       <>

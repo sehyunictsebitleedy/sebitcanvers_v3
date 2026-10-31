@@ -222,6 +222,8 @@ export function GlobalForm({
                 onChange={(e) => patchVisual({ enabled: e.target.checked })}
               />
             </label>
+            <fieldset disabled={!visual.enabled}>
+            <legend>비주얼 세부 설정</legend>
             <label>
               유형
               <select
@@ -367,6 +369,7 @@ export function GlobalForm({
                 </label>
               </>
             )}
+            </fieldset>
           </>
         )}
         {error && (
