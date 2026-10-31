@@ -21,6 +21,8 @@ import {
   X,
 } from "lucide-react";
 import "./App.css";
+import { InfoPage } from "./InfoPage";
+import { infoPageFromHash } from "./infoRoutes";
 import { Dashboard } from "./dashboard/Preview";
 import { createSample } from "./dashboard/samples";
 import { deletedProjectKey, draftsStorageKey, loadProject, saveInitialSnapshot, saveProject, storageFailureMessage } from "./dashboard/storage";
@@ -166,6 +168,7 @@ const features = [
   },
 ];
 function App() {
+  const [infoPage, setInfoPage] = useState(() => infoPageFromHash(window.location.hash));
   const [restored] = useState(restoreWorkspace);
   const [creating, setCreating] = useState(
     () => typeof window !== "undefined" && window.location.hash === "#create",
@@ -210,6 +213,7 @@ function App() {
   }, [modal]);
   useEffect(() => {
     const sync = () => {
+      setInfoPage(infoPageFromHash(window.location.hash));
       setInitialType(undefined);
       setCreating(window.location.hash === "#create");
       const next = restoreWorkspace();
@@ -225,12 +229,14 @@ function App() {
     };
   }, []);
   const home = () => {
+    setInfoPage(null);
     setDrafts(readDrafts());
     setCreating(false);
     setWorkspace(null);
     window.history.pushState(null, "", "#");
   };
   const openCreate = (type?: number) => {
+    setInfoPage(null);
     close();
     setWorkspace(null);
     setInitialType(type);
@@ -328,7 +334,13 @@ function App() {
     );
   return (
     <>
-      <a className="skip-link" href="#main">
+      <a className="skip-link" href="#main" onClick={(event) => {
+        event.preventDefault();
+        const main = document.querySelector<HTMLElement>("main");
+        main?.setAttribute("tabindex", "-1");
+        main?.focus();
+        main?.scrollIntoView();
+      }}>
         본문으로 이동
       </a>
       <header className="site-header">
@@ -355,7 +367,7 @@ function App() {
           </div>
         </nav>
       </header>
-      {creating ? (
+      {infoPage ? <InfoPage page={infoPage} /> : creating ? (
         <Suspense
           fallback={<p role="status">제작 조건 화면을 준비하고 있습니다.</p>}
         >
@@ -595,6 +607,9 @@ function App() {
           <span>아이디어에서 대시보드까지.</span>
           <small>© {year} SEbit. All rights reserved.</small>
           <a href="#guide">사용방법</a>
+          <a href="#info/service">서비스 안내</a>
+          <a href="#info/terms">이용약관</a>
+          <a href="#info/privacy">개인정보처리방침</a>
           <a
             href="http://sebit.co.kr"
             target="_blank"

@@ -1,0 +1,20 @@
+.info-page { padding-top: 64px; padding-bottom: 72px; max-width: 1000px; }
+.info-heading h1 { margin: 14px 0; font-size: 36px; letter-spacing: -1px; }
+.info-heading p { color: #aebbd0; line-height: 1.8; }
+.info-nav { display: flex; gap: 12px; margin: 32px 0; border-bottom: 1px solid #303a4d; padding-bottom: 16px; }
+.info-nav a { padding: 10px 16px; border-radius: 6px; color: #b9c7db; }
+.info-nav a[aria-current="page"] { background: #272b44; color: #d4ccff; }
+.info-draft { padding: 20px 24px; border: 1px solid #6d5b38; background: #252218; color: #e5d5ad; border-radius: 8px; }
+.info-draft p { margin-bottom: 0; line-height: 1.8; }
+.info-content section { padding: 28px 0; border-bottom: 1px solid #273246; }
+.info-content h2 { font-size: 20px; margin: 0 0 16px; }
+.info-content p, .info-content td { color: #b9c7db; line-height: 1.9; font-size: 15px; word-break: keep-all; overflow-wrap: anywhere; }
+.info-content a { color: #b5a4ff; text-decoration: underline; }
+.info-table { overflow-x: auto; }
+.info-table table { width: 100%; border-collapse: collapse; }
+.info-table th, .info-table td { text-align: left; padding: 16px; border: 1px solid #303a4d; vertical-align: top; }
+.info-table th { background: #161f30; }
+.info-content summary { cursor: pointer; color: #cbbdff; padding: 12px 0; }
+.license-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; line-height: 1.7; color: #aebbd0; }
+.info-page > .button { margin-top: 32px; }
+.footer-inner { flex-wrap: wrap; }
