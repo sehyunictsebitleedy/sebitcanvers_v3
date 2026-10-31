@@ -1,0 +1,56 @@
+import { test, expect } from "@playwright/test";
+
+test("KPI color and icon validate, cancel, persist, undo and finalize", async ({ page }) => {
+  await page.goto("/#create");
+  await page.getByRole("button", { name: "샘플 미리보기 만들기" }).click();
+  await page.getByRole("button", { name: "편집으로 돌아가기" }).click();
+  const card = page.locator(".db-card.db-kpi").first();
+  await card.locator(".db-select").click();
+  const original = await card.locator(".db-value").textContent();
+  await page.getByLabel("KPI 아이콘").selectOption("target");
+  await page.getByLabel("KPI 개별 색상 사용").check();
+  await page.getByLabel("KPI 색상", { exact: true }).fill("bad");
+  await page.getByRole("button", { name: "변경 적용", exact: true }).click();
+  await expect(page.locator(".workspace-form [role=alert]")).toBeVisible();
+  await expect(card.locator(".db-kpi-icon")).toHaveCount(0);
+  await page.getByRole("button", { name: "입력 취소", exact: true }).click();
+  await expect(page.getByLabel("KPI 아이콘")).toHaveValue("none");
+  await expect(page.getByLabel("KPI 개별 색상 사용")).not.toBeChecked();
+  await page.getByLabel("KPI 아이콘").selectOption("users");
+  await page.getByLabel("KPI 개별 색상 사용").check();
+  await page.getByLabel("KPI 색상", { exact: true }).fill("#12ab90");
+  await page.getByRole("button", { name: "변경 적용", exact: true }).click();
+  await expect(card.locator(".db-kpi-icon")).toBeVisible();
+  await expect(card.locator(".db-value")).toHaveCSS("color", "rgb(18, 171, 144)");
+  await expect(card.locator(".db-value")).toHaveText(original!);
+  await page.reload();
+  await expect(card.locator(".db-kpi-icon")).toBeVisible();
+  await card.locator(".db-select").click();
+  await page.getByLabel("KPI 개별 색상 사용").uncheck();
+  await page.getByLabel("KPI 아이콘").selectOption("none");
+  await page.getByRole("button", { name: "변경 적용", exact: true }).click();
+  await expect(card.locator(".db-kpi-icon")).toHaveCount(0);
+  await page.getByRole("button", { name: "실행 취소" }).click();
+  await expect(card.locator(".db-kpi-icon")).toBeVisible();
+  await page.getByRole("button", { name: "확정 및 다운로드" }).click();
+  await expect(page.getByText("모든 검사를 통과했습니다.")).toBeVisible();
+});
+
+test("disabled main visual preserves its settings when re-enabled", async ({ page }) => {
+  await page.goto("/#create");
+  await page.getByRole("button", { name: "샘플 미리보기 만들기" }).click();
+  await page.getByRole("button", { name: "편집으로 돌아가기" }).click();
+  await page.locator(".workspace-tree").getByRole("button", { name: "메인 비주얼", exact: true }).click();
+  const enabled = page.getByLabel("메인 비주얼 사용", { exact: true });
+  await enabled.check();
+  await page.getByLabel("비주얼 제목", { exact: true }).fill("보존할 제목");
+  await page.getByRole("button", { name: "변경 적용", exact: true }).click();
+  await enabled.uncheck();
+  await expect(page.getByLabel("비주얼 제목", { exact: true })).toBeDisabled();
+  await page.getByRole("button", { name: "변경 적용", exact: true }).click();
+  await page.reload();
+  await page.locator(".workspace-tree").getByRole("button", { name: "메인 비주얼", exact: true }).click();
+  await enabled.check();
+  await expect(page.getByLabel("비주얼 제목", { exact: true })).toHaveValue("보존할 제목");
+  await expect(page.getByLabel("비주얼 제목", { exact: true })).toBeEnabled();
+});

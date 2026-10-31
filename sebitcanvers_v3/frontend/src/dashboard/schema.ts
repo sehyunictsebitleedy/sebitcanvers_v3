@@ -17,6 +17,8 @@ export const kpiSchema = z.strictObject({
   value: number,
   unit: z.string().max(12),
   change: number,
+  color: color.nullable().optional(),
+  icon: z.enum(["none", "chart", "users", "wallet", "target", "activity"]).optional(),
 });
 const chartSchema = z
   .strictObject({

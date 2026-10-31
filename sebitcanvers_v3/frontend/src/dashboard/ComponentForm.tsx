@@ -246,6 +246,26 @@ export function ComponentForm({
               />
             </label>
             {numberField("증감", "change", draft.change)}
+            <label>KPI 아이콘
+              <select aria-label="KPI 아이콘" value={draft.icon ?? "none"}
+                onChange={(e) => patch({ icon: e.target.value })}>
+                <option value="none">없음</option>
+                <option value="chart">차트</option>
+                <option value="users">사용자</option>
+                <option value="wallet">금액</option>
+                <option value="target">목표</option>
+                <option value="activity">활동</option>
+              </select>
+            </label>
+            <label>KPI 개별 색상 사용
+              <input type="checkbox" checked={draft.color != null}
+                onChange={(e) => patch({ color: e.target.checked ? "#6366f1" : null })} />
+            </label>
+            {draft.color != null && <label>KPI 색상
+              <input aria-label="KPI 색상" value={draft.color} maxLength={7}
+                placeholder="#6366f1" onChange={(e) => patch({ color: e.target.value })} />
+              <small>숫자와 아이콘에 적용할 6자리 HEX 색상입니다.</small>
+            </label>}
           </>
         )}
         {draft.type === "progress" && (
