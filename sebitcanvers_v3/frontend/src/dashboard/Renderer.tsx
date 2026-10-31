@@ -482,6 +482,9 @@ export function DashboardRenderer({
                     className={`db-card db-${component.type} ${selectedId === component.id ? "db-selected" : ""}`}
                     style={{
                       gridColumn: `span ${component.layout.columnSpan}`,
+                      minHeight: component.layout.height && component.layout.height !== "auto"
+                        ? { small: 160, medium: 280, large: 400 }[component.layout.height]
+                        : undefined,
                     }}
                   >
                     {onSelect && (

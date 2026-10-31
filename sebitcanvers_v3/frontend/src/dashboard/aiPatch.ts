@@ -133,7 +133,9 @@ export function applyAiPatch(
     if (op.action === "update") {
       const { section, index } = locate(op.targetId);
       const current = section.components[index];
-      const updated = componentSchema.parse({ ...current, ...op.changes });
+      const updated = componentSchema.parse({ ...current, ...op.changes,
+        layout: op.changes.layout ? { ...current.layout, ...op.changes.layout } : current.layout,
+      });
       section.components[index] = updated;
       if (JSON.stringify(current) !== JSON.stringify(updated))
         summary.push(
@@ -143,7 +145,7 @@ export function applyAiPatch(
                 ({
                   title: "제목",
                   visible: "표시 여부",
-                  layout: "너비",
+                  layout: "크기",
                   value: "값",
                   unit: "단위",
                   change: "증감",

@@ -415,8 +415,8 @@ export function Workspace({
                   {section.visible ? "" : " · 숨김"}
                 </summary>
                 {section.components.map((item) => (
+                  <div className="tree-item" key={item.id}>
                   <button
-                    key={item.id}
                     disabled={busy}
                     className={item.id === selected ? "active" : ""}
                     aria-pressed={item.id === selected}
@@ -425,6 +425,17 @@ export function Workspace({
                     {item.title}
                     {item.visible ? "" : " · 숨김"}
                   </button>
+                  <button disabled={busy} className="tree-visibility"
+                    aria-label={`${item.title} ${item.visible ? "숨기기" : "표시하기"}`}
+                    aria-pressed={item.visible}
+                    onClick={() => {
+                      try {
+                        commit(replaceComponent(schema, { ...item, visible: !item.visible }));
+                      } catch {
+                        setExportStatus("마지막 표시 데이터는 숨길 수 없습니다. 현재 작업은 유지됩니다.");
+                      }
+                    }}>{item.visible ? "숨김" : "표시"}</button>
+                  </div>
                 ))}
               </details>
             ))}
