@@ -9,7 +9,9 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "tsx --tsconfig tsconfig.app.json --test tests/*.test.tsx",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:qa": "playwright test --config playwright.qa.config.ts",
+    "test:qa:preview": "npm run build && playwright test --config playwright.preview.config.ts"
   },
   "dependencies": {
     "jszip": "^3.10.2",
