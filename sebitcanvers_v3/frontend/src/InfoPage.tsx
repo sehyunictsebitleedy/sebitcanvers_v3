@@ -3,6 +3,7 @@ import { thirdPartyNotices } from "./thirdPartyNotices";
 import "./info.css";
 import { infoPages } from "./infoRoutes";
 import type { InfoPageId } from "./infoRoutes";
+import { CompanyContact } from "./CompanyContact";
 
 export function InfoPage({ page }: { page: InfoPageId }) {
   const title = useRef<HTMLHeadingElement>(null);
@@ -24,7 +25,7 @@ export function InfoPage({ page }: { page: InfoPageId }) {
     </nav>
     {page !== "service" && <aside className="info-draft" aria-label="정책 검토 상태">
       <strong>공개 전 검토본 · 2026-10-31 작성</strong>
-      <p>현재 기능을 기준으로 작성한 초안입니다. 운영 주체·문의처·시행일과 최종 이용 조건은 아직 확정되지 않았으며, 확정된 약관이나 동의 절차로 사용하지 않습니다.</p>
+      <p>현재 기능을 기준으로 작성한 초안입니다. 회사 연락처는 SEbit 홈페이지 기준으로 반영했으며, 개인정보 담당 절차·시행일·최종 이용 조건은 확정 전입니다. 확정된 약관이나 동의 절차로 사용하지 않습니다.</p>
     </aside>}
     <article className="info-content">
       {page === "service" ? <>
@@ -50,7 +51,7 @@ export function InfoPage({ page }: { page: InfoPageId }) {
         <section><h2>2. 이용 방법과 제한</h2><p>현재 회원가입 없이 무료로 제공하며, AI 요청에는 화면에 표시되는 사용 한도와 처리 제한이 적용됩니다. 보안 우회, 한도 회피, 악성 코드 삽입, 타인의 권리 침해 또는 불법적인 용도의 이용은 허용하지 않는 방향으로 운영 기준을 마련합니다.</p></section>
         <section><h2>3. 입력 자료와 결과물</h2><p>개인정보·인증 정보·기밀은 입력하지 마세요. 업로드하거나 입력하는 자료에 대한 사용 권한을 확인해야 합니다. 생성 결과는 사용 전에 정확성·보안·타인 권리 침해 여부를 검토해야 합니다.</p><p>결과물의 수정·재배포·상업적 이용 조건과 서비스 제공자의 책임 범위는 최종 확정 전입니다. 외부 라이브러리·아이콘의 라이선스와 사용자 자료의 권리는 각각 따릅니다.</p></section>
         <section><h2>4. 저장·변경·중단</h2><p>프로젝트는 브라우저에 보관됩니다. 브라우저 데이터 삭제, 기기 변경, 저장 공간 부족 등에 대비해 필요한 결과를 직접 다운로드하세요. 운영·보안·유지보수에 따른 서비스 변경·중단 및 사전 안내 기준은 공개 전에 확정합니다.</p></section>
-        <section><h2>5. 운영자와 문의</h2><p>정식 운영 주체, 연락처, 분쟁 처리 절차, 책임 범위와 시행일은 확인 중입니다. 확정본을 게시하기 전 이 검토본을 이용 동의의 근거로 사용하지 않습니다.</p></section>
+        <section><h2>5. 운영자와 문의</h2><CompanyContact /><p>위 정보는 SEbit 홈페이지의 회사 연락처입니다. 분쟁 처리 절차, 책임 범위와 시행일은 확인 중입니다. 확정본을 게시하기 전 이 검토본을 이용 동의의 근거로 사용하지 않습니다.</p></section>
       </> : <>
         <section><h2>1. 처리 범위</h2><p>회원가입을 위한 이름·이메일·전화번호 입력란은 없습니다. 다만 AI 요청 내용, 접속 IP와 사용량 식별 정보가 처리될 수 있으므로 ‘개인정보를 전혀 처리하지 않는 서비스’는 아닙니다. 입력 내용에 개인정보를 포함하지 마세요.</p></section>
         <section><h2>2. 저장 위치와 목적</h2>
@@ -65,7 +66,7 @@ export function InfoPage({ page }: { page: InfoPageId }) {
           <p>OpenAI 공식 안내에 따르면 API 데이터는 별도 공유 동의가 없는 한 모델 학습에 사용되지 않지만, 악용 방지 기록에는 내용이 포함되고 기본적으로 최대 30일 보관될 수 있으며 예외가 있습니다. 이 서비스가 제공업체의 무보관을 보장하지는 않습니다. <a href="https://developers.openai.com/api/docs/guides/your-data" target="_blank" rel="noopener noreferrer">OpenAI 데이터 처리 안내 (새 창)</a></p>
           <p>실제 계약 상대·처리 국가·이전 시점과 방법·보관 조건·거부 방법 등 국외 처리 관련 고지는 운영 계정과 계약을 확인한 후 확정합니다. AI 전송을 원하지 않으면 AI 생성·수정을 사용하지 않고 샘플과 CMS를 이용할 수 있습니다.</p></section>
         <section><h2>4. 쿠키·삭제와 권리 행사</h2><p>브라우저 설정에서 쿠키를 차단하거나 사이트 데이터를 삭제할 수 있습니다. 쿠키 차단은 AI 사용 한도 확인에 영향을 줄 수 있고 사이트 데이터 삭제는 작업 손실로 이어질 수 있습니다. 브라우저 데이터 삭제가 서버 기록이나 이미 전달된 AI 요청을 삭제하는 것은 아닙니다.</p><p>열람·정정·삭제·처리정지 요청을 위한 담당자와 연락처, 본인 확인 및 처리 절차는 공개 전 확정해야 합니다. 현재 이 화면에서 서버 기록 삭제 요청을 접수하지 않습니다.</p></section>
-        <section><h2>5. 공개 전 확정 사항</h2><p>운영 주체·담당자·문의처, 처리 근거, 수탁자·국외 처리 조건, 파기 및 안전조치, 실제 서버·백업 보관 기간과 시행일이 남아 있습니다. 현재 구현 설명을 확정된 개인정보처리방침으로 오인하지 않도록 검토본 상태를 표시합니다.</p></section>
+        <section><h2>5. 회사 연락처와 공개 전 확정 사항</h2><CompanyContact /><p>위 대표 문의처와 별도로 개인정보 담당자·권리 행사 절차, 처리 근거, 수탁자·국외 처리 조건, 파기 및 안전조치, 실제 서버·백업 보관 기간과 시행일의 확인이 남아 있습니다. 현재 구현 설명을 확정된 개인정보처리방침으로 오인하지 않도록 검토본 상태를 표시합니다.</p></section>
       </>}
     </article>
     <a className="button secondary" href="#">홈으로 돌아가기</a>
