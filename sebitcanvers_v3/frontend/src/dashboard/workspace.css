@@ -442,3 +442,11 @@
   border-radius: 8px;
 }
 .navigation-order-actions { display: flex; gap: 8px; margin-top: 8px; }
+.workspace-form .property-group { margin: 16px 0; padding: 14px 0; border-top: 1px solid #303a4d; }
+.workspace-form .property-group > legend { color: #b7c3d8; font-size: 12px; padding: 0 8px 0 0; }
+.workspace-form [aria-invalid="true"] { border-color: #f391a5; outline-color: #f391a5; }
+.field-errors { padding-left: 18px; font-size: 12px; line-height: 1.7; }
+.field-errors button { border: 0; background: none; color: inherit; text-decoration: underline; cursor: pointer; padding: 0; }
+.workspace-tree .tree-item { display: flex; align-items: center; gap: 4px; }
+.workspace-tree .tree-item > button:first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.workspace-tree .tree-item .tree-visibility { width: 42px; flex-shrink: 0; padding: 8px 4px; text-align: center; font-size: 11px; }

@@ -9,7 +9,10 @@ const base = {
   id,
   title: text,
   visible: z.boolean(),
-  layout: z.strictObject({ columnSpan: z.number().int().min(1).max(12) }),
+  layout: z.strictObject({
+    columnSpan: z.number().int().min(1).max(12),
+    height: z.enum(["auto", "small", "medium", "large"]).optional(),
+  }),
 };
 export const kpiSchema = z.strictObject({
   ...base,
@@ -126,7 +129,7 @@ export const componentSchema = z.discriminatedUnion("type", [
     })
     .refine(
       (value) => value.value <= value.max,
-      "진행 값은 최대값을 초과할 수 없습니다.",
+      { message: "진행 값은 최대값을 초과할 수 없습니다.", path: ["value"] },
     ),
   z.strictObject({
     ...base,

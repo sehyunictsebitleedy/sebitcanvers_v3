@@ -12,9 +12,10 @@ export function NavigationIcon({ name }: { name: MenuItem["icon"] }) {
   return <Icon className="db-menu-icon" size={16} aria-hidden="true" focusable="false" />;
 }
 
-export function NavigationEditor({ navigation, onChange }: {
+export function NavigationEditor({ navigation, onChange, field = () => ({}) }: {
   navigation: Navigation;
   onChange: (navigation: Navigation) => void;
+  field?: (path: string) => React.InputHTMLAttributes<HTMLInputElement>;
 }) {
   const update = (id: string, patch: Partial<MenuItem>) => onChange({
     ...navigation,
@@ -35,7 +36,7 @@ export function NavigationEditor({ navigation, onChange }: {
         <fieldset key={item.id}>
           <legend>메뉴 {index + 1}</legend>
           <label>메뉴명
-            <input aria-label={`메뉴 ${index + 1} 이름`} value={item.label} maxLength={120}
+            <input {...field(`navigation.items.${index}.label`)} aria-label={`메뉴 ${index + 1} 이름`} value={item.label} maxLength={120}
               onChange={(event) => update(item.id, { label: event.target.value })} />
           </label>
           <label>표시

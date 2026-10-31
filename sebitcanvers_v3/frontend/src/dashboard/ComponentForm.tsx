@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import type { InputHTMLAttributes } from "react";
+import { useFieldErrors } from "./FieldErrors";
 import type { DashboardComponent } from "./schema";
 import { componentSchema } from "./schema";
 
@@ -6,14 +8,17 @@ function NumberInput({
   value,
   onChange,
   label,
+  inputProps,
 }: {
   value: number;
   onChange: (value: number) => void;
   label?: string;
+  inputProps?: InputHTMLAttributes<HTMLInputElement>;
 }) {
   const [text, setText] = useState(String(value));
   return (
     <input
+      {...inputProps}
       aria-label={label}
       inputMode="decimal"
       value={text}
@@ -38,6 +43,7 @@ export function ComponentForm({
     structuredClone(component),
   );
   const [error, setError] = useState("");
+  const { ref: formRef, field, errors: fieldErrors, setIssues } = useFieldErrors();
   const [resetVersion, setResetVersion] = useState(0);
   const [dataOpen, setDataOpen] = useState(false);
   const dataDialog = useRef<HTMLDialogElement>(null);
@@ -55,6 +61,7 @@ export function ComponentForm({
       <NumberInput
         key={`${key}-${resetVersion}`}
         label={label}
+        inputProps={field(key)}
         value={value}
         onChange={(value) => patch({ [key]: value })}
       />
@@ -62,15 +69,18 @@ export function ComponentForm({
   );
   return (
     <form
+      ref={formRef}
       className="workspace-form"
       noValidate
       onSubmit={(e) => {
         e.preventDefault();
         const parsed = componentSchema.safeParse(draft);
         if (!parsed.success) {
-          setError(parsed.error.issues.map((i) => i.message).join(" / "));
+          setIssues(parsed.error.issues);
+          setError("");
           return;
         }
+        setIssues([]);
         setError(
           onApply(parsed.data)
             ? ""
@@ -95,29 +105,35 @@ export function ComponentForm({
           }{" "}
           속성
         </legend>
+        <fieldset className="property-group"><legend>내용</legend>
         <label>
           제목
           <input
             aria-label="제목"
-            value={draft.title}
+            {...field("title")} value={draft.title}
             maxLength={120}
             onChange={(e) => patch({ title: e.target.value })}
           />
         </label>
+        </fieldset>
+        <fieldset className="property-group"><legend>표시</legend>
         <label>
           표시 여부
           <input
             type="checkbox"
-            checked={draft.visible}
+            {...field("visible")} checked={draft.visible}
             onChange={(e) => patch({ visible: e.target.checked })}
           />
         </label>
+        </fieldset>
+        <fieldset className="property-group"><legend>레이아웃</legend>
         <label>
           너비
           <select
-            value={draft.layout.columnSpan}
+            aria-label="너비"
+            {...field("layout.columnSpan")} value={draft.layout.columnSpan}
             onChange={(e) =>
-              patch({ layout: { columnSpan: Number(e.target.value) } })
+              patch({ layout: { ...draft.layout, columnSpan: Number(e.target.value) } })
             }
           >
             {[3, 4, 6, 8, 12].includes(draft.layout.columnSpan) ? null : (
@@ -132,14 +148,26 @@ export function ComponentForm({
             ))}
           </select>
         </label>
+        <label>높이
+          <select aria-label="높이" {...field("layout.height")} value={draft.layout.height ?? "auto"}
+            onChange={(e) => patch({ layout: { ...draft.layout, height: e.target.value } })}>
+            <option value="auto">자동</option>
+            <option value="small">작게 · 최소 160px</option>
+            <option value="medium">보통 · 최소 280px</option>
+            <option value="large">크게 · 최소 400px</option>
+          </select>
+          <small>내용이 많으면 높이가 늘어납니다. 내용은 잘리지 않습니다.</small>
+        </label>
+        </fieldset>
+        <fieldset className="property-group" hidden={draft.type === "chart" || draft.type === "table"}><legend>유형별 내용 · 스타일</legend>
         {draft.type === "statusBadge" && (
           <>
             <label>배지 문구
-              <input aria-label="배지 문구" value={draft.label} maxLength={120}
+              <input aria-label="배지 문구" {...field("label")} value={draft.label} maxLength={120}
                 onChange={(e) => patch({ label: e.target.value })} />
             </label>
             <label>배지 상태
-              <select aria-label="배지 상태" value={draft.status}
+              <select aria-label="배지 상태" {...field("status")} value={draft.status}
                 onChange={(e) => patch({ status: e.target.value })}>
                 <option value="info">안내</option>
                 <option value="success">정상</option>
@@ -152,11 +180,11 @@ export function ComponentForm({
         {draft.type === "button" && (
           <>
             <label>버튼 문구
-              <input aria-label="버튼 문구" value={draft.label} maxLength={120}
+              <input aria-label="버튼 문구" {...field("label")} value={draft.label} maxLength={120}
                 onChange={(e) => patch({ label: e.target.value })} />
             </label>
             <label>버튼 스타일
-              <select aria-label="버튼 스타일" value={draft.variant}
+              <select aria-label="버튼 스타일" {...field("variant")} value={draft.variant}
                 onChange={(e) => patch({ variant: e.target.value })}>
                 <option value="primary">Primary · 기본</option>
                 <option value="secondary">Secondary · 보조</option>
@@ -165,7 +193,7 @@ export function ComponentForm({
               </select>
             </label>
             <label>버튼 크기
-              <select aria-label="버튼 크기" value={draft.size}
+              <select aria-label="버튼 크기" {...field("size")} value={draft.size}
                 onChange={(e) => patch({ size: e.target.value })}>
                 <option value="small">작게</option>
                 <option value="medium">기본</option>
@@ -173,7 +201,7 @@ export function ComponentForm({
               </select>
             </label>
             <label>이동 주소
-              <input aria-label="이동 주소" value={draft.url} maxLength={2048}
+              <input aria-label="이동 주소" {...field("url")} value={draft.url} maxLength={2048}
                 onChange={(e) => patch({ url: e.target.value })} />
             </label>
             <p>http/https 웹주소는 새 창으로, #dashboard-data는 대시보드 내부로 이동합니다. 미리보기에서 클릭할 수 있습니다.</p>
@@ -186,19 +214,19 @@ export function ComponentForm({
               <fieldset key={`${resetVersion}-${index}`}>
                 <legend>활동 {index + 1}</legend>
                 <label>제목
-                  <input aria-label={`활동 ${index + 1} 제목`} value={item.title} maxLength={120}
+                  <input aria-label={`활동 ${index + 1} 제목`} {...field(`items.${index}.title`)} value={item.title} maxLength={120}
                     onChange={(e) => patch({ items: draft.items.map((v, i) => i === index ? { ...v, title: e.target.value } : v) })} />
                 </label>
                 <label>설명
-                  <textarea aria-label={`활동 ${index + 1} 설명`} value={item.description} maxLength={500}
+                  <textarea aria-label={`활동 ${index + 1} 설명`} {...field(`items.${index}.description`)} value={item.description} maxLength={500}
                     onChange={(e) => patch({ items: draft.items.map((v, i) => i === index ? { ...v, description: e.target.value } : v) })} />
                 </label>
                 <label>시간
-                  <input aria-label={`활동 ${index + 1} 시간`} value={item.timestamp} maxLength={80}
+                  <input aria-label={`활동 ${index + 1} 시간`} {...field(`items.${index}.timestamp`)} value={item.timestamp} maxLength={80}
                     onChange={(e) => patch({ items: draft.items.map((v, i) => i === index ? { ...v, timestamp: e.target.value } : v) })} />
                 </label>
                 <label>아이콘
-                  <select aria-label={`활동 ${index + 1} 아이콘`} value={item.icon}
+                  <select aria-label={`활동 ${index + 1} 아이콘`} {...field(`items.${index}.icon`)} value={item.icon}
                     onChange={(e) => patch({ items: draft.items.map((v, i) => i === index ? { ...v, icon: e.target.value } : v) })}>
                     <option value="info">안내</option><option value="check">완료</option>
                     <option value="clock">대기</option><option value="alert">주의</option>
@@ -223,12 +251,12 @@ export function ComponentForm({
           <>
             <label>
               표시 값
-              <input aria-label="표시 값" value={draft.displayValue} maxLength={80}
+              <input aria-label="표시 값" {...field("displayValue")} value={draft.displayValue} maxLength={80}
                 onChange={(e) => patch({ displayValue: e.target.value })} />
             </label>
             <label>
               요약 설명
-              <textarea aria-label="요약 설명" value={draft.description} maxLength={500}
+              <textarea aria-label="요약 설명" {...field("description")} value={draft.description} maxLength={500}
                 onChange={(e) => patch({ description: e.target.value })} />
             </label>
           </>
@@ -240,14 +268,49 @@ export function ComponentForm({
               단위
               <input
                 aria-label="단위"
-                value={draft.unit}
+                {...field("unit")} value={draft.unit}
                 maxLength={12}
                 onChange={(e) => patch({ unit: e.target.value })}
               />
             </label>
             {numberField("증감", "change", draft.change)}
+
+          </>
+        )}
+        {draft.type === "progress" && (
+          <>
+            {numberField("진행 값", "value", draft.value)}
+            {numberField("최대값", "max", draft.max)}
+          </>
+        )}
+        {draft.type === "notification" && (
+          <>
+            <label>
+              알림 문구
+              <textarea
+                {...field("message")} value={draft.message}
+                maxLength={500}
+                onChange={(e) => patch({ message: e.target.value })}
+              />
+            </label>
+            <label>
+              상태
+              <select
+                {...field("status")} value={draft.status}
+                onChange={(e) => patch({ status: e.target.value })}
+              >
+                {["info", "success", "warning", "error"].map((s) => (
+                  <option key={s}>{s}</option>
+                ))}
+              </select>
+            </label>
+          </>
+        )}
+        </fieldset>
+        {(draft.type === "kpi" || draft.type === "chart") && <fieldset className="property-group"><legend>스타일</legend>
+          {draft.type === "kpi" && <>
             <label>KPI 아이콘
-              <select aria-label="KPI 아이콘" value={draft.icon ?? "none"}
+              <select aria-label="KPI 아이콘" {...field("icon")} value={draft.icon ?? "none"}
                 onChange={(e) => patch({ icon: e.target.value })}>
                 <option value="none">없음</option>
                 <option value="chart">차트</option>
@@ -262,48 +325,18 @@ export function ComponentForm({
                 onChange={(e) => patch({ color: e.target.checked ? "#6366f1" : null })} />
             </label>
             {draft.color != null && <label>KPI 색상
-              <input aria-label="KPI 색상" value={draft.color} maxLength={7}
+              <input aria-label="KPI 색상" {...field("color")} value={draft.color} maxLength={7}
                 placeholder="#6366f1" onChange={(e) => patch({ color: e.target.value })} />
               <small>숫자와 아이콘에 적용할 6자리 HEX 색상입니다.</small>
             </label>}
-          </>
-        )}
-        {draft.type === "progress" && (
-          <>
-            {numberField("진행 값", "value", draft.value)}
-            {numberField("최대값", "max", draft.max)}
-          </>
-        )}
-        {draft.type === "notification" && (
-          <>
-            <label>
-              알림 문구
-              <textarea
-                value={draft.message}
-                maxLength={500}
-                onChange={(e) => patch({ message: e.target.value })}
-              />
-            </label>
-            <label>
-              상태
-              <select
-                value={draft.status}
-                onChange={(e) => patch({ status: e.target.value })}
-              >
-                {["info", "success", "warning", "error"].map((s) => (
-                  <option key={s}>{s}</option>
-                ))}
-              </select>
-            </label>
-          </>
-        )}
+          </>}
         {draft.type === "chart" && (
           <>
           <label>
             차트 종류
             <select
               aria-label="차트 종류"
-              value={draft.chartType}
+              {...field("chartType")} value={draft.chartType}
               onChange={(e) => patch({ chartType: e.target.value })}
             >
               {["line", "bar", "area", "donut"].map((s) => (
@@ -312,12 +345,14 @@ export function ComponentForm({
             </select>
           </label>
           <label>범례 표시
-            <input type="checkbox" aria-label="범례 표시" checked={draft.showLegend !== false}
+            <input type="checkbox" aria-label="범례 표시" {...field("showLegend")} checked={draft.showLegend !== false}
               onChange={(event) => patch({ showLegend: event.target.checked })} />
           </label>
           </>
         )}
+        </fieldset>}
         {(draft.type === "chart" || draft.type === "table") && (
+          <fieldset className="property-group"><legend>데이터</legend>
           <button
             type="button"
             className="button secondary"
@@ -325,17 +360,19 @@ export function ComponentForm({
               setDataDraft(structuredClone(draft));
               setDataOpen(true);
               setError("");
+              setIssues([]);
             }}
           >
             데이터 편집
           </button>
+          </fieldset>
         )}
         {dataOpen && (
           <dialog
             ref={dataDialog}
             className="data-editor"
             aria-label="데이터 편집기"
-            onCancel={() => setDataOpen(false)}
+            onCancel={() => { setDataOpen(false); setIssues([]); setError(""); }}
           >
             <h3>샘플 데이터</h3>
             {dataDraft.type === "chart" && (
@@ -344,7 +381,7 @@ export function ComponentForm({
                   <label key={i}>
                     라벨 {i + 1}
                     <input
-                      value={label}
+                      {...field(`labels.${i}`)} value={label}
                       onChange={(e) =>
                         setDataDraft({
                           ...dataDraft,
@@ -362,7 +399,7 @@ export function ComponentForm({
                     <label>
                       데이터셋 이름
                       <input
-                        value={ds.name}
+                        {...field(`datasets.${i}.name`)} value={ds.name}
                         onChange={(e) =>
                           setDataDraft({
                             ...dataDraft,
@@ -376,7 +413,7 @@ export function ComponentForm({
                     <label>
                       차트 색상
                       <input
-                        value={ds.color}
+                        {...field(`datasets.${i}.color`)} value={ds.color}
                         onChange={(e) =>
                           setDataDraft({
                             ...dataDraft,
@@ -391,7 +428,7 @@ export function ComponentForm({
                       <label key={k}>
                         {dataDraft.labels[k]} 값
                         <NumberInput
-                          value={v}
+                          inputProps={field(`datasets.${i}.data.${k}`)} value={v}
                           onChange={(value) =>
                             setDataDraft({
                               ...dataDraft,
@@ -488,7 +525,7 @@ export function ComponentForm({
                   <label key={col.key}>
                     컬럼 {i + 1}
                     <input
-                      value={col.label}
+                      {...field(`columns.${i}.label`)} value={col.label}
                       onChange={(e) =>
                         setDataDraft({
                           ...dataDraft,
@@ -517,7 +554,7 @@ export function ComponentForm({
                               {typeof row[col.key] === "number" ? (
                                 <NumberInput
                                   label={`${i + 1}행 ${col.label}`}
-                                  value={row[col.key] as number}
+                                  inputProps={field(`rows.${i}.${col.key}`)} value={row[col.key] as number}
                                   onChange={(value) =>
                                     setDataDraft({
                                       ...dataDraft,
@@ -532,7 +569,7 @@ export function ComponentForm({
                               ) : (
                                 <input
                                   aria-label={`${i + 1}행 ${col.label}`}
-                                  value={row[col.key]}
+                                  {...field(`rows.${i}.${col.key}`)} value={row[col.key]}
                                   onChange={(e) =>
                                     setDataDraft({
                                       ...dataDraft,
@@ -589,6 +626,7 @@ export function ComponentForm({
                 </button>
               </>
             )}
+            {fieldErrors}
             {error && (
               <p className="form-error" role="alert">
                 {error}
@@ -598,13 +636,15 @@ export function ComponentForm({
               type="button"
               onClick={() => {
                 const parsed = componentSchema.safeParse(dataDraft);
-                if (!parsed.success) {
-                  setError(
-                    parsed.error.issues.map((i) => i.message).join(" / "),
-                  );
+                const dataIssues = parsed.success ? [] : parsed.error.issues.filter(issue =>
+                  ["labels", "datasets", "columns", "rows"].includes(String(issue.path[0])));
+                if (dataIssues.length) {
+                  setIssues(dataIssues);
+                  setError("");
                   return;
                 }
-                setDraft(parsed.data);
+                setDraft(dataDraft);
+                setIssues([]);
                 setDataOpen(false);
                 setError("");
               }}
@@ -615,6 +655,7 @@ export function ComponentForm({
               type="button"
               onClick={() => {
                 setDataOpen(false);
+                setIssues([]);
                 setError("");
               }}
             >
@@ -623,6 +664,7 @@ export function ComponentForm({
           </dialog>
         )}
         <p>입력 후 변경 적용을 누르면 화면에 반영됩니다.</p>
+        {!dataOpen && fieldErrors}
         {error && (
           <p className="form-error" role="alert">
             {error}
@@ -636,6 +678,7 @@ export function ComponentForm({
           className="button secondary"
           onClick={() => {
             setDraft(structuredClone(component));
+            setIssues([]);
             setResetVersion((v) => v + 1);
             setDataOpen(false);
             setError("");

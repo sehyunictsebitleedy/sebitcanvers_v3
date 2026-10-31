@@ -1,5 +1,7 @@
 import { useState } from "react";
 import type { DashboardSchema } from "./schema";
+import { dashboardSchema } from "./schema";
+import { useFieldErrors } from "./FieldErrors";
 import { saveImage } from "../create/assets";
 import { AssetImage } from "./AssetImage";
 import { NavigationEditor } from "./NavigationEditor";
@@ -17,6 +19,7 @@ export function GlobalForm({
 }) {
   const [draft, setDraft] = useState(() => structuredClone(schema));
   const [error, setError] = useState("");
+  const { ref: formRef, field, errors: fieldErrors, setIssues } = useFieldErrors();
   const [uploading, setUploading] = useState(false);
   const visual = draft.mainVisual;
   const patchVisual = (patch: Partial<typeof visual>) =>
@@ -26,10 +29,18 @@ export function GlobalForm({
     }));
   return (
     <form
+      ref={formRef}
       className="workspace-form"
       noValidate
       onSubmit={(e) => {
         e.preventDefault();
+        const checked = dashboardSchema.safeParse(draft);
+        if (!checked.success) {
+          setIssues(checked.error.issues);
+          setError("");
+          return;
+        }
+        setIssues([]);
         setError(
           onApply(
             mode === "visual"
@@ -51,10 +62,11 @@ export function GlobalForm({
         <legend>{mode === "visual" ? "메인 비주얼" : "전체 설정"}</legend>
         {mode === "global" ? (
           <>
+            <fieldset className="property-group"><legend>내용 · 헤더</legend>
             <label>
               프로젝트 이름
               <input
-                value={draft.project.name}
+                {...field("project.name")} value={draft.project.name}
                 maxLength={120}
                 onChange={(e) =>
                   setDraft({
@@ -67,7 +79,7 @@ export function GlobalForm({
             <label>
               대시보드 제목
               <input
-                value={draft.header.title}
+                {...field("header.title")} value={draft.header.title}
                 maxLength={120}
                 onChange={(e) =>
                   setDraft({
@@ -80,7 +92,7 @@ export function GlobalForm({
             <label>
               설명
               <textarea
-                value={draft.header.description}
+                {...field("header.description")} value={draft.header.description}
                 maxLength={300}
                 onChange={(e) =>
                   setDraft({
@@ -103,13 +115,15 @@ export function GlobalForm({
             </label>
             {draft.header.date?.visible && (
               <label>기준일
-                <input type="date" aria-label="헤더 기준일" value={draft.header.date.value}
+                <input type="date" aria-label="헤더 기준일" {...field("header.date.value")} value={draft.header.date.value}
                   onChange={(event) => setDraft({ ...draft, header: { ...draft.header,
                     date: { visible: true, value: event.target.value },
                   } })} />
                 <small>선택한 날짜를 저장하며, 새로고침해도 자동 변경되지 않습니다.</small>
               </label>
             )}
+            </fieldset>
+            <fieldset className="property-group"><legend>스타일</legend>
             {(
               [
                 "primary",
@@ -132,7 +146,7 @@ export function GlobalForm({
                   ][i]
                 }
                 <input
-                  value={draft.theme[key]}
+                  {...field(`theme.${key}`)} value={draft.theme[key]}
                   onChange={(e) =>
                     setDraft({
                       ...draft,
@@ -142,10 +156,12 @@ export function GlobalForm({
                 />
               </label>
             ))}
+            </fieldset>
+            <fieldset className="property-group"><legend>메뉴 · 레이아웃</legend>
             <label>
               로고 텍스트
               <input
-                value={draft.navigation.logoText}
+                {...field("navigation.logoText")} value={draft.navigation.logoText}
                 onChange={(e) =>
                   setDraft({
                     ...draft,
@@ -161,7 +177,7 @@ export function GlobalForm({
               메뉴 위치
               <select
                 aria-label="메뉴 위치"
-                value={draft.navigation.type}
+                {...field("navigation.type")} value={draft.navigation.type}
                 onChange={(e) =>
                   setDraft({
                     ...draft,
@@ -176,14 +192,16 @@ export function GlobalForm({
                 <option value="top">상단</option>
               </select>
             </label>
-            <NavigationEditor navigation={draft.navigation}
+            <NavigationEditor navigation={draft.navigation} field={field}
               onChange={(navigation) => setDraft({ ...draft, navigation })} />
+            </fieldset>
+            <fieldset className="property-group"><legend>섹션 · 표시</legend>
             {draft.sections.map((section, i) => (
               <div key={section.id}>
                 <label>
                   섹션 {i + 1}
                   <input
-                    value={section.title}
+                    {...field(`sections.${i}.title`)} value={section.title}
                     onChange={(e) =>
                       setDraft({
                         ...draft,
@@ -198,7 +216,7 @@ export function GlobalForm({
                   섹션 표시
                   <input
                     type="checkbox"
-                    checked={section.visible}
+                    {...field(`sections.${i}.visible`)} checked={section.visible}
                     onChange={(e) =>
                       setDraft({
                         ...draft,
@@ -211,6 +229,7 @@ export function GlobalForm({
                 </label>
               </div>
             ))}
+            </fieldset>
           </>
         ) : (
           <>
@@ -218,7 +237,7 @@ export function GlobalForm({
               메인 비주얼 사용
               <input
                 type="checkbox"
-                checked={visual.enabled}
+                {...field("mainVisual.enabled")} checked={visual.enabled}
                 onChange={(e) => patchVisual({ enabled: e.target.checked })}
               />
             </label>
@@ -227,7 +246,7 @@ export function GlobalForm({
             <label>
               유형
               <select
-                value={visual.type}
+                {...field("mainVisual.type")} value={visual.type}
                 onChange={(e) =>
                   patchVisual({ type: e.target.value as typeof visual.type })
                 }
@@ -240,7 +259,7 @@ export function GlobalForm({
             <label>
               높이
               <select
-                value={visual.height ?? "medium"}
+                {...field("mainVisual.height")} value={visual.height ?? "medium"}
                 onChange={(e) =>
                   patchVisual({
                     height: e.target.value as typeof visual.height,
@@ -255,7 +274,7 @@ export function GlobalForm({
             <label>
               비주얼 제목
               <input
-                value={visual.title}
+                {...field("mainVisual.title")} value={visual.title}
                 maxLength={120}
                 onChange={(e) => patchVisual({ title: e.target.value })}
               />
@@ -263,7 +282,7 @@ export function GlobalForm({
             <label>
               비주얼 설명
               <textarea
-                value={visual.description}
+                {...field("mainVisual.description")} value={visual.description}
                 maxLength={500}
                 onChange={(e) => patchVisual({ description: e.target.value })}
               />
@@ -271,7 +290,7 @@ export function GlobalForm({
             <label>
               정렬
               <select
-                value={visual.alignment ?? "left"}
+                {...field("mainVisual.alignment")} value={visual.alignment ?? "left"}
                 onChange={(e) =>
                   patchVisual({
                     alignment: e.target.value as typeof visual.alignment,
@@ -289,7 +308,7 @@ export function GlobalForm({
                 type="range"
                 min={0}
                 max={80}
-                value={visual.overlay ?? 35}
+                {...field("mainVisual.overlay")} value={visual.overlay ?? 35}
                 onChange={(e) =>
                   patchVisual({ overlay: Number(e.target.value) })
                 }
@@ -347,7 +366,7 @@ export function GlobalForm({
                 <label>
                   버튼 이름
                   <input
-                    value={visual.cta.label}
+                    {...field("mainVisual.cta.label")} value={visual.cta.label}
                     maxLength={120}
                     onChange={(e) =>
                       patchVisual({
@@ -359,7 +378,7 @@ export function GlobalForm({
                 <label>
                   버튼 주소
                   <input
-                    value={visual.cta.url}
+                    {...field("mainVisual.cta.url")} value={visual.cta.url}
                     onChange={(e) =>
                       patchVisual({
                         cta: { ...visual.cta!, url: e.target.value },
@@ -372,6 +391,7 @@ export function GlobalForm({
             </fieldset>
           </>
         )}
+        {fieldErrors}
         {error && (
           <p role="alert" className="form-error">
             {error}
@@ -385,6 +405,7 @@ export function GlobalForm({
           type="button"
           onClick={() => {
             setDraft(structuredClone(schema));
+            setIssues([]);
             setError("");
           }}
         >
