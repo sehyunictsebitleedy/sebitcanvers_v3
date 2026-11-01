@@ -24,6 +24,8 @@ export function AiEditDrawer({
   const [scope, setScope] = useState("all");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const [instructionError, setInstructionError] = useState(false);
+  const instructionInput = useRef<HTMLTextAreaElement>(null);
   const [notice, setNotice] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const startedAt = useRef(0);
@@ -52,12 +54,20 @@ export function AiEditDrawer({
     setError("");
     setNotice("수정을 취소했습니다. 기존 작업과 수정 요청은 유지되며, 취소한 결과는 적용하지 않습니다.");
   };
+  const close = () => {
+    // Close natively before unmounting so the browser restores opener focus.
+    dialog.current?.close();
+    onClose();
+  };
   const submit = async () => {
     if (locked.current) return;
     if (!instruction.trim()) {
-      setError("수정 요청을 입력해 주세요.");
+      setError("");
+      setInstructionError(true);
+      instructionInput.current?.focus();
       return;
     }
+    setInstructionError(false);
     locked.current = true;
     setPending(true);
     onBusy(true);
@@ -153,7 +163,7 @@ export function AiEditDrawer({
       onCancel={(event) => {
         event.preventDefault();
         if (pending) cancel();
-        else onClose();
+        else close();
       }}
     >
       <header>
@@ -182,14 +192,21 @@ export function AiEditDrawer({
           </select>
           <label htmlFor="ai-edit-instruction">수정 요청</label>
           <textarea
+            ref={instructionInput}
             id="ai-edit-instruction"
             value={instruction}
-            onChange={(e) => setInstruction(e.target.value)}
+            onChange={(e) => {
+              setInstruction(e.target.value);
+              if (e.target.value.trim()) setInstructionError(false);
+            }}
+            aria-invalid={instructionError || undefined}
+            aria-describedby={instructionError ? "ai-edit-input-help ai-edit-input-error" : "ai-edit-input-help"}
             maxLength={1000}
             rows={7}
             placeholder="예: 매출 추이 차트를 막대 차트로 바꾸고 너비를 12열로 넓혀줘"
           />
-          <small>
+          {instructionError && <p id="ai-edit-input-error" className="form-error" role="alert">수정 요청을 입력해 주세요.</p>}
+          <small id="ai-edit-input-help">
             {instruction.length} / 1000 · 개인정보·비밀번호·API Key를 입력하지
             마세요.
           </small>
@@ -248,7 +265,7 @@ export function AiEditDrawer({
         <button
           className="button secondary"
           disabled={pending}
-          onClick={onClose}
+          onClick={close}
         >
           닫기
         </button>
