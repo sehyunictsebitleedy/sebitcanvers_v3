@@ -38,3 +38,29 @@ npm.cmd run test:e2e -- e2e/ai-edit-wait.spec.ts e2e/generationWait.spec.ts e2e/
 ## 후속 범위
 
 이번 검수에서 코드 수정이 필요한 실패는 발견하지 않았습니다. 호스팅 없이 이어갈 작업은 실제 생성 결과의 로컬 화면·ZIP 품질 확인, 사용자 수동 사용성 피드백 반영, 정책 미확정 항목 정리입니다. 외부 참여 Beta·운영 HTTPS·백업 복원·공개 정책 확정은 완료 처리하지 않습니다.
+
+## 후속: 실제 생성 결과 화면·ZIP 검수 완료
+
+2026-11-01, `b896bf2`에서 `검수/AI-결과화면-ZIP` 생성. 샘플 자료로 4개 유형을 새로 생성해 검증된 Schema를 로컬에 저장했습니다. 생성 시간은 분석 10,034ms, 관리자 10,378ms, 프로젝트 13,357ms, 모니터링 14,445ms였으며 모두 복구 호출 없이 성공했습니다. 이전 실행의 결과를 보관하지 않았으므로 이번 검수용으로 새로 생성한 것입니다.
+
+프로덕션 빌드를 Vite Preview로 제공하고 캡처한 결과를 생성 API 응답으로 재생했습니다. **4개 유형 × Chrome/Edge = 8개 시나리오 통과**. 각 시나리오에서 1280·1920px 페이지 넘침과 도넛 카드 경계, 새로고침 복원, 확정·ZIP 다운로드, 원본 sections와 ZIP 데이터 일치, 라이선스 파일 포함, 네트워크 오프라인 상태의 file URL 실행을 확인했습니다. 프로젝트 1280px Preview와 모니터링 ZIP 캡처도 직접 확인했습니다. 전 스타일·전 데이터 길이 조합의 전수 검사는 아닙니다.
+
+제품 기능 결함은 발견하지 않았으며 검수 도구만 추가했습니다. 프론트 빌드·린트와 백엔드 타입 검사도 통과했습니다. 이번에도 HTTPS·프록시·사용량을 거치는 실시간 UI 생성 호출을 검증한 것은 아닙니다.
+
+재현 명령(저장소 루트, PowerShell):
+
+```powershell
+# 유료 AI 생성 4건, 각 최대 1회 복구. 필요할 때만 실행.
+npm.cmd --prefix backend run test:live:capture
+
+# 이후 화면 검수 반복은 추가 AI 호출 없음.
+cd sebitcanvers_v3/frontend
+npm.cmd run build
+$env:QA_LIVE_ARTIFACTS='1'
+npx.cmd playwright test --config playwright.live.config.ts
+Remove-Item Env:QA_LIVE_ARTIFACTS
+```
+
+캡처는 `backend/test-results/live-schema/`, 화면·추출 ZIP은 `sebitcanvers_v3/frontend/test-results/live-artifacts/`, 보고서는 `playwright-report/live-artifacts/`에 저장됩니다. 모두 Git 제외 경로이며 재실행 시 바뀔 수 있습니다. 캡처의 manifest가 완료 상태가 아니면 브라우저 검수가 실패합니다. 일반 테스트에서는 명시적 opt-in이 없어 이 시나리오를 건너뜁니다. 캡처 명령에 사용자 원본 자료를 넣지 않습니다.
+
+다음은 사용자 수동 사용성 피드백과 미확정 정책 정보 정리입니다. 호스팅·도메인은 계속 현재 범위에서 제외합니다.
