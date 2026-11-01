@@ -11,4 +11,5 @@ test("downloaded ZIP includes the complete icon and tool license notices", async
   assert.match(thirdPartyNotices, /Lucide Icons and Contributors/);
   assert.match(thirdPartyNotices, /Cole Bemis/);
   assert.match(await zip.file("README.md")!.async("string"), /THIRD_PARTY_NOTICES.txt/);
+  assert.match(await zip.file("README.md")!.async("string"), /생성 결과물의 수정·재배포·상업적 이용을 허용합니다/);
 });
