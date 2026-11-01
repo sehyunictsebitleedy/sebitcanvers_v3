@@ -50,6 +50,13 @@ export function ComponentForm({
   useEffect(() => {
     if (dataOpen) dataDialog.current?.showModal();
   }, [dataOpen]);
+  const closeData = () => {
+    // Restore native dialog focus before React removes the element.
+    dataDialog.current?.close();
+    setDataOpen(false);
+    setIssues([]);
+    setError("");
+  };
   const [dataDraft, setDataDraft] = useState<DashboardComponent>(
     structuredClone(component),
   );
@@ -372,7 +379,7 @@ export function ComponentForm({
             ref={dataDialog}
             className="data-editor"
             aria-label="데이터 편집기"
-            onCancel={() => { setDataOpen(false); setIssues([]); setError(""); }}
+            onCancel={(event) => { event.preventDefault(); closeData(); }}
           >
             <h3>샘플 데이터</h3>
             {dataDraft.type === "chart" && (
@@ -644,20 +651,14 @@ export function ComponentForm({
                   return;
                 }
                 setDraft(dataDraft);
-                setIssues([]);
-                setDataOpen(false);
-                setError("");
+                closeData();
               }}
             >
               데이터 적용
             </button>
             <button
               type="button"
-              onClick={() => {
-                setDataOpen(false);
-                setIssues([]);
-                setError("");
-              }}
+              onClick={closeData}
             >
               데이터 취소
             </button>
