@@ -9,6 +9,7 @@
     "report:ai": "node --env-file-if-exists=.env --import tsx src/reportTelemetry.ts",
     "test": "tsx --test tests/*.test.ts",
     "test:live": "tsx src/smoke.ts",
+    "test:live:capture": "node --env-file-if-exists=.env --import tsx src/captureQa.ts",
     "test:live:edit": "tsx src/smokeEdit.ts"
   },
   "dependencies": {
