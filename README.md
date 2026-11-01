@@ -15,7 +15,7 @@ v1.0(2026-09-30)의 요약입니다. 아래 기획 범위는 구현 완료를 �
 
 - CRM을 제외한 분석·관리자·프로젝트·모니터링 4개 유형을 지원합니다.
 - AI 생성·수정, 9개 데이터 컴포넌트의 CMS 편집, 미리보기·확정·ZIP 다운로드와 로컬 저장·복구를 구현했습니다.
-- 최근 완료: **읽기 전용 배포 사전 점검 명령**과 **생성 결과물 수정·재배포·상업적 이용 허용 안내**. 기존 [Chrome/Edge 통합 QA 112개 결과](docs/RELEASE_QA.md)는 그대로 보관합니다.
+- 최근 완료: **읽기 전용 AI 진단 집계 명령**과 **[운영 AI·Beta 검수표](docs/deployment/BETA_CHECKLIST.md)**. 배포 사전 점검과 결과물 수정·재배포·상업적 이용 허용 안내도 반영했습니다. 기존 [Chrome/Edge 통합 QA 112개 결과](docs/RELEASE_QA.md)는 그대로 보관합니다.
 - 서버·호스팅·도메인은 미정으로, 사용자 결정에 따라 **배포 준비만 진행**합니다. 공개 전에는 나머지 [정책 정보](docs/POLICY_RELEASE.md), 실제 배포 환경, 운영 AI·Beta 검증이 필요합니다. 정책 전체는 아직 검토본이며 외부 배포는 하지 않았습니다.
 - 날짜별 변경 내용·검증 결과·브랜치 이력은 **[작업 내역](docs/WORK_LOG.md)**에서 확인하세요. 앞으로 상세 작업 기록은 해당 파일에만 추가합니다.
 - 공개 V1 전체 완료는 아직 아니며, 서비스 정책·실제 운영 환경·통합 QA 검수가 남아 있습니다.
@@ -164,6 +164,8 @@ npm.cmd run test:qa:preview
 ```
 
 ## 참고 문서
+
+- [운영 AI·Beta 검수표](docs/deployment/BETA_CHECKLIST.md): 검수 순서·통과 기준·`npm.cmd --prefix backend run report:ai` 사용법과 집계 한계
 
 - [배포 사전 점검](docs/deployment/SINGLE_SERVER.md): `npm.cmd --prefix backend run check:deploy`, 실제 운영 설정 준비 및 검증 범위
 

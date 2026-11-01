@@ -6,6 +6,7 @@
     "dev": "node --env-file-if-exists=.env --import tsx src/index.ts",
     "check": "tsc --noEmit",
     "check:deploy": "node --env-file-if-exists=.env --import tsx src/checkDeployment.ts",
+    "report:ai": "node --env-file-if-exists=.env --import tsx src/reportTelemetry.ts",
     "test": "tsx --test tests/*.test.ts",
     "test:live": "tsx src/smoke.ts",
     "test:live:edit": "tsx src/smokeEdit.ts"
