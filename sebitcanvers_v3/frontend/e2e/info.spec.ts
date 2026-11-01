@@ -26,6 +26,7 @@ test("service guidance and licenses are available without AI requests at PC widt
   page.on("request", request => { if (/\/api\/(generate|edit)$/.test(request.url())) aiCalls++; });
   await page.goto("/#info/service");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("서비스 안내");
+  await expect(page.getByText(/생성 결과물의 수정·재배포·상업적 이용을 허용합니다/)).toBeVisible();
   await page.getByText("라이선스 원문 보기", { exact: true }).click();
   await expect(page.locator(".license-text")).toContainText("Lucide");
   await expect(page.locator(".license-text")).toContainText("Cole Bemis");

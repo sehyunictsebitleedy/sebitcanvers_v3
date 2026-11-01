@@ -39,6 +39,32 @@ AI 요청 재전송을 막기 위해 프록시 자동 upstream 재시도를 끄�
 
 ## 설치·배포 순서
 
+### 읽기 전용 사전 점검
+
+서버·도메인은 아직 미정이며, 현재는 배포 준비만 진행합니다. 실제 서버가 정해지면 프론트 빌드와 영속 데이터 디렉터리를 준비한 후 **백엔드를 실행할 서비스 계정**으로 검사합니다.
+
+```powershell
+# 로컬 backend/.env 기준 검사 (개발 설정이면 FAIL이 정상)
+npm.cmd --prefix backend run check:deploy
+```
+
+```sh
+# Linux 운영 서버: 릴리스의 backend 디렉터리에서 실행
+node --env-file=/etc/sebit/backend.env --import tsx src/checkDeployment.ts
+```
+
+서버 시작과 사전 점검은 `runtimeSettings.ts`의 같은 기본값·숫자 범위 검증을 사용합니다. 검사 결과는 PASS/FAIL과 항목명만 출력하며, 키·모델·설정값·실제 경로는 출력하지 않습니다. 실패가 있으면 종료 코드 1, 모두 통과하면 0입니다.
+
+- Node 24 이상, production 모드, HTTPS origin·루프백 HOST·신뢰 로컬 프록시, 숫자 설정 범위.
+- API 키·모델의 **설정 여부만** 확인. 실제 키 유효성·모델 접근권한·AI 응답은 확인하지 않음.
+- AI 점검 모드가 꺼져 있는지 확인. 의도적으로 `AI_MAINTENANCE=true`로 준비 중이면 해당 항목은 FAIL로 표시됨.
+- `dist/index.html`의 존재·읽기 가능 여부.
+- 두 DB의 절대 경로, 릴리스 밖 위치, 심볼릭 링크 해석 후 서로 다른 경로, 부모 디렉터리 및 기존 DB의 현재 계정 접근 권한.
+
+이 명령은 환경/파일 정보를 읽기만 하며 DB 생성·쓰기·삭제, 서버 시작, AI 호출을 하지 않습니다. 영속 디렉터리를 자동 생성하지 않습니다. `access` 검사만으로 디스크 용량·SQLite 무결성·저널 생성·실제 쓰기 성공을 보장하지 않습니다. root로 검사한 결과를 서비스 계정의 권한 검증으로 대체하지 마세요. 실제 방화벽·TLS·Nginx·로그/백업/롤백은 아래 절차로 별도 확인합니다.
+
+### 실제 환경 확정 후 배포
+
 1. Node.js 24 이상과 Nginx, TLS 인증서, 서비스 계정 및 영속 데이터 디렉터리를 준비합니다. 서버의 실제 경로·권한을 확인합니다.
 2. 저장소 전체를 새 릴리스 디렉터리에 체크아웃합니다. 백엔드가 프론트엔드의 공유 Schema 코드를 가져오므로 backend만 복사하지 않습니다.
 3. 프론트엔드에서 `npm ci --include=dev` 후 `npm run build`, 백엔드에서 `npm ci --include=dev`와 `npm run check`, `npm test`를 실행합니다. 현재 빌드 도구와 실행기는 devDependencies에 있으므로 제외하지 않습니다.
