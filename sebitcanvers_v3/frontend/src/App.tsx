@@ -25,6 +25,7 @@ import { InfoPage } from "./InfoPage";
 import { infoPageFromHash } from "./infoRoutes";
 import { CompanyContact } from "./CompanyContact";
 import { Dashboard } from "./dashboard/Preview";
+import { TypeThumbnail } from "./dashboard/TypeThumbnail";
 import { createSample } from "./dashboard/samples";
 import { deletedProjectKey, draftsStorageKey, loadProject, saveInitialSnapshot, saveProject, storageFailureMessage } from "./dashboard/storage";
 import { RecoveryActions } from "./dashboard/RecoveryActions";
@@ -479,7 +480,7 @@ function App() {
                   style={{ "--type-color": item.color } as CSSProperties}
                 >
                   <div className="template-image" aria-hidden="true">
-                    <Dashboard type={item.id} compact />
+                    <TypeThumbnail type={item.id} />
                   </div>
                   <div className="template-info">
                     <div>

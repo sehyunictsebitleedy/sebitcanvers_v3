@@ -280,7 +280,8 @@ h1 > span {
   background: #182131;
 }
 .template-image {
-  height: 134px;
+  width: 100%;
+  aspect-ratio: 320 / 190;
   overflow: hidden;
   position: relative;
   border-radius: 5px;
@@ -288,12 +289,12 @@ h1 > span {
   background: #121b2a;
   pointer-events: none;
 }
-.template-image:after {
-  content: "";
-  position: absolute;
-  inset: 60% 0 0;
-  background: linear-gradient(transparent, #11192580);
-}
+.type-thumbnail { display: block; width: 100%; height: 100%; color: var(--type-color); }
+.type-thumbnail text { font-family: inherit; font-size: 10px; }
+.type-thumbnail .thumb-heading { fill: #e5edf8; font-weight: 600; }
+.type-thumbnail .thumb-muted { fill: #a0b0c7; }
+.type-thumbnail .thumb-value { fill: #f4f7fc; font-size: 27px; font-weight: 700; letter-spacing: -1px; }
+.type-thumbnail .thumb-positive { fill: #7de0bb; }
 
 .template-info {
   padding: 16px 7px 12px;
