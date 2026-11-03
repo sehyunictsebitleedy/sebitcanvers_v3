@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { readyOptionsSchema } from "../../sebitcanvers_v3/frontend/src/create/contracts";
 import { buildDashboard } from "../../sebitcanvers_v3/frontend/src/create/buildDashboard";
+import { typeDesignBrief } from "../../sebitcanvers_v3/frontend/src/create/typeDesign";
 import { dashboardSchema } from "../../sebitcanvers_v3/frontend/src/dashboard/schema";
 import type { DashboardSchema } from "../../sebitcanvers_v3/frontend/src/dashboard/schema";
 import { tokenUsage } from "./telemetry";
@@ -91,6 +92,8 @@ export async function generate(
   const prompt = JSON.stringify({
     task: "Customize the example dashboard content and sample data for the additional request. Preserve project, theme, layout, navigation.type, mainVisual, settings and selected component types. Return full JSON.",
     options,
+    designDirection: typeDesignBrief[options.type],
+    composition: "Follow the example's type-specific section order, component widths and chart styles. Customize Korean titles and coherent sample data for the user request. Do not revert every type to the same four KPIs plus area/donut layout. Include only selected component types. Never add unsupported components or interactions. Preserve the user's chosen style and colors.",
     contract,
     example: base,
   });

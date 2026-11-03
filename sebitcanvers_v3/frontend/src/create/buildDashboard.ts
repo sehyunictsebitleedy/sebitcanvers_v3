@@ -1,4 +1,5 @@
 import { createSample } from "../dashboard/samples";
+import { applyTypeDesign } from "./typeDesign";
 import { dashboardSchema } from "../dashboard/schema";
 import { readyOptionsSchema } from "./contracts";
 import type { CreateOptions } from "./contracts";
@@ -49,7 +50,7 @@ export function buildDashboard(
   now: string,
 ) {
   const options = readyOptionsSchema.parse(input);
-  const schema = createSample(options.type);
+  const schema = applyTypeDesign(createSample(options.type), options.type);
   schema.project = {
     ...schema.project,
     id: projectId,
