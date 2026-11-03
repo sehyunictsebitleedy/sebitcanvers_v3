@@ -21,12 +21,27 @@ test("default generation quota allows three successes and rejects a fourth witho
     assert.equal(usage.snapshot("me", "ip", now).generate.remaining, 0);
     assert.throws(() => usage.reserve("me", "ip", "generate", 1000, now), (error: unknown) =>
       error instanceof Error && "code" in error && error.code === "DAILY_LIMIT");
-    assert.equal(usage.snapshot("me", "ip", now).edit.remaining, 20);
+    assert.equal(usage.snapshot("me", "ip", now).edit.remaining, 10);
     assert.equal(usage.snapshot("me", "ip", now + 86400000).generate.remaining, 3);
   } finally { usage.close(); }
 });
 
 const limits = { generate: 1, edit: 2, ipGenerate: 2, ipEdit: 3 };
+test("default edit quota allows ten successes and rejects an eleventh independently of generation", () => {
+  const usage = new UsageStore(":memory:", readRuntimeSettings({}).limits);
+  const now = Date.parse("2026-11-03T03:00:00Z");
+  try {
+    for (let i = 0; i < 10; i++) {
+      const reservation = usage.reserve("me", "ip", "edit", 1000, now);
+      usage.finish(reservation.id, true, now);
+    }
+    assert.equal(usage.snapshot("me", "ip", now).edit.remaining, 0);
+    assert.throws(() => usage.reserve("me", "ip", "edit", 1000, now), (error: unknown) =>
+      error instanceof Error && "code" in error && error.code === "DAILY_LIMIT");
+    assert.equal(usage.snapshot("me", "ip", now).generate.remaining, 3);
+    assert.equal(usage.snapshot("me", "ip", now + 86400000).edit.remaining, 10);
+  } finally { usage.close(); }
+});
 test("usage snapshots report personal counts, active reservations, IP restriction and day reset without consuming quota", () => {
   const usage = new UsageStore(":memory:", limits);
   const now = Date.parse("2026-10-29T14:59:59Z");

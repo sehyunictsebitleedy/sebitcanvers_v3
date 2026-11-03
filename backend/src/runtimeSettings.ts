@@ -21,7 +21,7 @@ export function readRuntimeSettings(env: NodeJS.ProcessEnv = process.env) {
     maintenance: env.AI_MAINTENANCE === "true",
     limits: {
       generate: integer("AI_DAILY_GENERATE", 3, 10000),
-      edit: integer("AI_DAILY_EDIT", 20, 10000),
+      edit: integer("AI_DAILY_EDIT", 10, 10000),
       ipGenerate: integer("AI_DAILY_IP_GENERATE", 50, 100000),
       ipEdit: integer("AI_DAILY_IP_EDIT", 200, 100000),
     },
