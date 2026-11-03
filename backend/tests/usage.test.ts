@@ -8,6 +8,23 @@ import { UsageStore, usageDay } from "../src/usage";
 import { createApi } from "../src/server";
 import { createSample } from "../../sebitcanvers_v3/frontend/src/dashboard/samples";
 import { defaultOptions } from "../../sebitcanvers_v3/frontend/src/create/contracts";
+import { readRuntimeSettings } from "../src/runtimeSettings";
+
+test("default generation quota allows three successes and rejects a fourth without changing edit quota", () => {
+  const usage = new UsageStore(":memory:", readRuntimeSettings({}).limits);
+  const now = Date.parse("2026-11-03T03:00:00Z");
+  try {
+    for (let i = 0; i < 3; i++) {
+      const reservation = usage.reserve("me", "ip", "generate", 1000, now);
+      usage.finish(reservation.id, true, now);
+    }
+    assert.equal(usage.snapshot("me", "ip", now).generate.remaining, 0);
+    assert.throws(() => usage.reserve("me", "ip", "generate", 1000, now), (error: unknown) =>
+      error instanceof Error && "code" in error && error.code === "DAILY_LIMIT");
+    assert.equal(usage.snapshot("me", "ip", now).edit.remaining, 20);
+    assert.equal(usage.snapshot("me", "ip", now + 86400000).generate.remaining, 3);
+  } finally { usage.close(); }
+});
 
 const limits = { generate: 1, edit: 2, ipGenerate: 2, ipEdit: 3 };
 test("usage snapshots report personal counts, active reservations, IP restriction and day reset without consuming quota", () => {

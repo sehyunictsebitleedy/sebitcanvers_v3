@@ -57,7 +57,7 @@ test("preflight rejects development config, missing key, unsafe DB placement and
 test("shared runtime settings preserve development defaults and validate all numeric bounds", () => {
   const s = readRuntimeSettings({});
   assert.equal(s.host, "127.0.0.1"); assert.equal(s.port, 3001); assert.equal(s.timeout, 60000);
-  assert.deepEqual(s.limits, { generate: 5, edit: 20, ipGenerate: 50, ipEdit: 200 });
+  assert.deepEqual(s.limits, { generate: 3, edit: 20, ipGenerate: 50, ipEdit: 200 });
   assert.equal(readRuntimeSettings({ AI_TIMEOUT_MS: "120000" }).timeout, 120000);
   for (const key of ["PORT", "AI_TIMEOUT_MS", "AI_RATE_LIMIT", "AI_CONCURRENCY", "AI_DAILY_GENERATE", "AI_DAILY_EDIT", "AI_DAILY_IP_GENERATE", "AI_DAILY_IP_EDIT"])
     assert.throws(() => readRuntimeSettings({ [key]: "0" }));
