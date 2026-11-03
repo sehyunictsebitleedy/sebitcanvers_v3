@@ -6,6 +6,28 @@ import { createApi } from "../src/server";
 import { defaultOptions } from "../../sebitcanvers_v3/frontend/src/create/contracts";
 import { createSample } from "../../sebitcanvers_v3/frontend/src/dashboard/samples";
 
+test("generation supplies distinct type layouts while preserving selected styles and component subsets", async () => {
+  for (const type of [0, 1, 3, 4]) {
+    for (const components of [["kpi", "chart", "table"], ["table"], ["chart"]] as const) {
+      const options = { ...defaultOptions(type), style: "dark" as const, components: [...components] };
+      const result = await generate(options, async prompt => {
+        const request = JSON.parse(prompt);
+        assert.ok(request.designDirection);
+        const base = request.example;
+        if (components.length === 3) {
+          const first = base.sections[0].components[0];
+          assert.equal(first.type, type === 0 ? "kpi" : type === 4 ? "chart" : "table");
+          if (type === 3) assert.deepEqual(base.sections[0].components.map((c: {layout: {columnSpan: number}}) => c.layout.columnSpan), [4, 4, 4]);
+          if (type === 4) assert.equal(first.chartType, "line");
+        }
+        return JSON.stringify(base);
+      }, new AbortController().signal);
+      assert.equal(result.schema.theme.preset, "dark");
+      assert.deepEqual([...new Set(result.schema.sections.flatMap(s => s.components.map(c => c.type)))].sort(), [...components].sort());
+    }
+  }
+});
+
 test('invalid input is 400, provider timeout is 504 and a timed out slot can be retried', async () => {
   const config={key:'test',model:'test',origin:'http://localhost:5173',timeout:50,rateLimit:10,concurrency:1,maintenance:false};
   const server=createApi(config,async(_prompt,signal)=>new Promise((_,reject)=>signal.addEventListener('abort',()=>reject(signal.reason),{once:true})));

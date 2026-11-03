@@ -147,6 +147,8 @@ test("workspace applies KPI edits, rejects invalid input, undoes, previews and p
       loadProject(localStorage, savedList[0].id)?.project.type,
       "monitoring",
     );
+    // Monitoring now opens with a latency chart; explicitly select the KPI to edit.
+    fireEvent.click(document.querySelector<HTMLButtonElement>(".db-kpi .db-select")!);
     fireEvent.change(screen.getByLabelText("값"), {
       target: { value: "246810" },
     });
