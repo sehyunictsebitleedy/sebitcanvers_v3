@@ -203,9 +203,6 @@
   border-radius: 0;
   box-shadow: none;
 }
-.template-image {
-  height: 134px;
-}
 .template-image .schema-preview-viewport {
   min-height: 134px;
 }
