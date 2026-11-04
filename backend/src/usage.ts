@@ -4,11 +4,8 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { ApiError } from "./generate";
 
-type Kind = "generate" | "edit" | "chat";
-/** chat·ipChat은 AI 상담 한도. 생략하면 기본값(50·500)을 사용한다. */
-export type UsageLimits = { generate: number; edit: number; ipGenerate: number; ipEdit: number; chat?: number; ipChat?: number };
-const kindLabel: Record<Kind, string> = { generate: "생성", edit: "수정", chat: "상담" };
-const ipKey = { generate: "ipGenerate", edit: "ipEdit", chat: "ipChat" } as const;
+type Kind = "generate" | "edit";
+export type UsageLimits = { generate: number; edit: number; ipGenerate: number; ipEdit: number };
 const dayMs = 86400000;
 export function usageDay(now: number) {
   const shifted = now + 9 * 3600000;
@@ -17,10 +14,8 @@ export function usageDay(now: number) {
 export class UsageStore {
   private db: DatabaseSync;
   private secret: string;
-  readonly limits: Required<UsageLimits>;
-  constructor(path: string, limits: UsageLimits) {
-    this.limits = { chat: 50, ipChat: 500, ...limits };
-    for (const value of Object.values(this.limits)) if (!Number.isInteger(value) || value < 1) throw new Error("Invalid daily usage limit");
+  constructor(path: string, readonly limits: UsageLimits) {
+    for (const value of Object.values(limits)) if (!Number.isInteger(value) || value < 1) throw new Error("Invalid daily usage limit");
     if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
     this.db = new DatabaseSync(path, { timeout: 5000 });
     const version = this.db.prepare("PRAGMA user_version").get()!.user_version;
@@ -55,8 +50,8 @@ export class UsageStore {
     this.db.exec("BEGIN IMMEDIATE");
     try {
       const count = (field: "subject" | "ip", value: string) => Number(this.db.prepare(`SELECT count(*) AS count FROM usage WHERE day=? AND kind=? AND ${field}=? AND (state='success' OR expires>?)`).get(day, kind, value, now)!.count);
-      if (count("subject", user) >= this.limits[kind] || count("ip", address) >= this.limits[ipKey[kind]]) {
-        throw new ApiError(429, "DAILY_LIMIT", `오늘의 AI ${kindLabel[kind]} 사용 한도에 도달했습니다. 다음 사용 가능 시각: ${new Date(resetAt + 9 * 3600000).toISOString().slice(0, 10)} 00:00 (한국시간). 진행 중인 요청도 한도에 포함됩니다.`);
+      if (count("subject", user) >= this.limits[kind] || count("ip", address) >= this.limits[kind === "generate" ? "ipGenerate" : "ipEdit"]) {
+        throw new ApiError(429, "DAILY_LIMIT", `오늘의 AI ${kind === "generate" ? "생성" : "수정"} 사용 한도에 도달했습니다. 다음 사용 가능 시각: ${new Date(resetAt + 9 * 3600000).toISOString().slice(0, 10)} 00:00 (한국시간). 진행 중인 요청도 한도에 포함됩니다.`);
       }
       const id = randomUUID();
       this.db.prepare("INSERT INTO usage VALUES (?, ?, ?, ?, ?, 'pending', ?)").run(id, user, address, kind, day, now + ttl);
@@ -86,9 +81,9 @@ export class UsageStore {
       const used = Number(row?.used ?? 0);
       const pending = Number(row?.pending ?? 0);
       return { limit: this.limits[kind], used, pending, remaining: Math.max(0, this.limits[kind] - used - pending),
-        ipLimited: Number(row?.ipCount ?? 0) >= this.limits[ipKey[kind]] };
+        ipLimited: Number(row?.ipCount ?? 0) >= this.limits[kind === "generate" ? "ipGenerate" : "ipEdit"] };
     };
-    return { observedAt: new Date(now).toISOString(), resetAt: new Date(resetAt).toISOString(), generate: status("generate"), edit: status("edit"), chat: status("chat") };
+    return { observedAt: new Date(now).toISOString(), resetAt: new Date(resetAt).toISOString(), generate: status("generate"), edit: status("edit") };
   }
   close() { this.db.close(); }
 }
