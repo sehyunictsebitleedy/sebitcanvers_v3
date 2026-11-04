@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { z } from "zod";
 import { CmsConflict, type CmsStore } from "./cms";
+import { masterCookieName, masterToken } from "./masterSession";
 
 export async function cmsRoute(req: IncomingMessage, res: ServerResponse, config: { cms?: CmsStore; origin: string; allowedOrigins?: string[] }, ip: () => string) {
   if (!req.url?.startsWith("/api/cms/")) return false;
@@ -10,9 +11,8 @@ export async function cmsRoute(req: IncomingMessage, res: ServerResponse, config
   };
   const cms = config.cms;
   if (!cms) { send(503, { error: "관리 기능을 사용할 수 없습니다." }); return true; }
-  const cookieName = config.origin.startsWith("https:") ? "__Secure-sebit_master" : "sebit_master";
-  const cookie = (value: string, age: number) => `${cookieName}=${value}; Path=/api/cms; HttpOnly; SameSite=Strict; Max-Age=${age}${config.origin.startsWith("https:") ? "; Secure" : ""}`;
-  const token = req.headers.cookie?.split(";").map(v => v.trim()).find(v => v.startsWith(`${cookieName}=`))?.slice(cookieName.length + 1) ?? "";
+  const cookie = (value: string, age: number, legacy = false) => `${masterCookieName(config.origin, legacy)}=${value}; Path=${legacy ? "/api/cms" : "/api"}; HttpOnly; SameSite=Strict; Max-Age=${age}${config.origin.startsWith("https:") ? "; Secure" : ""}`;
+  const token = masterToken(req, config.origin, true);
   try {
     if (req.method === "GET" && req.url === "/api/cms/public") {
       const bundle = cms.state().published;
@@ -28,6 +28,9 @@ export async function cmsRoute(req: IncomingMessage, res: ServerResponse, config
     }
     if (req.method === "GET" && req.url === "/api/cms/session") {
       const session = cms.session(token);
+      // Upgrade old CMS-only cookies; the server session keeps its original expiry.
+      if (session && !masterToken(req, config.origin))
+        res.setHeader("Set-Cookie", [cookie(token, 8*3600), cookie("", 0, true)]);
       send(200, { configured: cms.configured(), authenticated: !!session, csrf: session?.csrf ?? null }); return true;
     }
     const session = cms.session(token);
@@ -58,10 +61,10 @@ export async function cmsRoute(req: IncomingMessage, res: ServerResponse, config
       const result = await cms.login(credentials.username, credentials.password, ip());
       if (result && "limited" in result) { res.setHeader("Retry-After", "900"); send(429, { error: "로그인 시도가 많습니다. 15분 후 다시 시도하세요." }); }
       else if (!result) send(401, { error: "아이디 또는 비밀번호를 확인하세요." });
-      else { cms.logout(token); res.setHeader("Set-Cookie", cookie(result.token, 8*3600)); send(200, { csrf: result.csrf }); }
+      else { cms.logout(token); res.setHeader("Set-Cookie", [cookie(result.token, 8*3600), cookie("", 0, true)]); send(200, { csrf: result.csrf }); }
       return true;
     }
-    if (req.url === "/api/cms/logout") { cms.logout(token); res.setHeader("Set-Cookie", cookie("", 0)); send(200, { ok: true }); return true; }
+    if (req.url === "/api/cms/logout") { cms.logout(token); res.setHeader("Set-Cookie", [cookie("", 0), cookie("", 0, true)]); send(200, { ok: true }); return true; }
     const operation = req.url.slice("/api/cms/".length);
     if (!["save", "publish", "restore"].includes(operation)) { send(404, { error: "요청 경로를 찾을 수 없습니다." }); return true; }
     const payload = z.strictObject({ revision: z.number().int().min(0), bundle: z.unknown().optional() }).parse(input);

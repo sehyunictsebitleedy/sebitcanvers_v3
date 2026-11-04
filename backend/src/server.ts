@@ -11,6 +11,7 @@ import { editRequestSchema } from "../../sebitcanvers_v3/frontend/src/dashboard/
 import type { AiEvent, TelemetryStore, TokenUsage } from "./telemetry";
 import { clientIpResolver } from "./clientIp";
 import { cmsRoute } from "./cmsRoutes";
+import { isMaster } from "./masterSession";
 import type { CmsStore } from "./cms";
 import { chatRequestSchema, sanitizeAnswer } from "../../sebitcanvers_v3/frontend/src/chat/contracts";
 import type { ChatAnswer } from "../../sebitcanvers_v3/frontend/src/chat/contracts";
@@ -182,6 +183,7 @@ export function createApi(config: Config, provider?: Provider) {
       }
       try {
         if (!config.usage) throw new Error("Usage store missing");
+        if (isMaster(req, config)) { send(200, { exempt: true }); return; }
         const identity = config.usage.identity(req.headers.cookie);
         const usage = config.usage.snapshot(identity.id, clientIp(req));
         if (identity.cookie) res.setHeader("Set-Cookie", identity.cookie + (config.origin.startsWith("https:") ? "; Secure" : ""));
@@ -261,7 +263,7 @@ export function createApi(config: Config, provider?: Provider) {
       const input = await body(req, isEdit ? 512000 : 32000);
       (isEdit ? editRequestSchema : readyOptionsSchema).parse(input);
       controller.signal.throwIfAborted();
-      if (config.usage) {
+      if (config.usage && !isMaster(req, config)) {
         const identity = config.usage.identity(req.headers.cookie);
         if (identity.cookie) res.setHeader("Set-Cookie", identity.cookie + (config.origin.startsWith("https:") ? "; Secure" : ""));
         try {
