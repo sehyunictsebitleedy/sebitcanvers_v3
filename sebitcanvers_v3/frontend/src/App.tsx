@@ -24,6 +24,8 @@ import "./App.css";
 import { InfoPage } from "./InfoPage";
 import { infoPageFromHash } from "./infoRoutes";
 import { CompanyContact } from "./CompanyContact";
+import { ChatWidget } from "./chat/ChatWidget";
+import type { ChatAction } from "./chat/contracts";
 import { Dashboard } from "./dashboard/Preview";
 import { TypeThumbnail } from "./dashboard/TypeThumbnail";
 import { createSample } from "./dashboard/samples";
@@ -248,6 +250,22 @@ function App() {
   const close = () => {
     dialog.current?.close();
     setModal(null);
+  };
+  /** AI 상담 답변의 이동 버튼. 홈 섹션은 홈으로 돌아온 뒤 해당 위치로 이동한다. */
+  const chatAction = (action: ChatAction) => {
+    if (action === "open-create") return openCreate();
+    const target = ({ "open-guide": "guide", "open-examples": "examples", "open-recent": "recent" } as Partial<Record<ChatAction, string>>)[action];
+    if (!target) return;
+    const scroll = () => {
+      const element = document.getElementById(target);
+      if (!element) return;
+      const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      element.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    };
+    if (infoPage || creating) {
+      home();
+      window.setTimeout(scroll, 0);
+    } else scroll();
   };
   const openWorkspace = (type: number, project: Draft) => {
     try {
@@ -624,6 +642,7 @@ function App() {
         </div>
         <div className="container footer-contact"><CompanyContact /></div>
       </footer>
+      <ChatWidget page={infoPage ? "info" : creating ? "create" : "home"} onAction={chatAction} />
       {modal && (
         <dialog
           ref={dialog}
