@@ -1,5 +1,6 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createSample } from "./samples";
+import { applyTypeDesign } from "../create/typeDesign";
 import { DashboardRenderer } from "./Renderer";
 import "./renderer.css";
 import type { DashboardSchema } from "./schema";
@@ -51,12 +52,20 @@ export function Dashboard({
   const [period, setPeriod] = useState("current");
   const schema = useMemo(() => {
     const data = createSample(type);
+    // The home hero retains its compact overview; expanded examples share
+    // the same type-specific composition used by dashboard generation.
+    if (!compact && (type === 0 || type === 1 || type === 3 || type === 4)) {
+      applyTypeDesign(data, type);
+      if (type === 0) data.header.title = "방문 및 유입 분석";
+    }
     if (title) data.header.title = title;
     if (period === "previous") {
       data.sections.forEach((section) =>
         section.components.forEach((component) => {
-          if (component.type === "kpi")
-            component.value = Math.round((component.value / 1.12) * 10) / 10;
+          if (component.type === "kpi") {
+            const precision = Number.isInteger(component.value) ? 1 : 10;
+            component.value = Math.round((component.value / 1.12) * precision) / precision;
+          }
           if (component.type === "chart" && component.chartType !== "donut")
             component.datasets.forEach((dataset) => {
               dataset.data = dataset.data.map((value) =>
@@ -67,7 +76,7 @@ export function Dashboard({
       );
     }
     return data;
-  }, [type, period, title]);
+  }, [type, compact, period, title]);
   const viewport = useRef<HTMLDivElement>(null);
   const content = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
