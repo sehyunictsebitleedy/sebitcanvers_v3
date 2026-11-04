@@ -13,6 +13,7 @@ import { addActivity, addButton, addStatusBadge, addSummary, arrangeComponent, e
 import { validateFinalization } from "./finalize";
 import type { FinalizeIssue } from "./finalize";
 import { AiEditDrawer } from "./AiEditDrawer";
+import { ChatWidget } from "../chat/ChatWidget";
 import rendererCss from "./renderer.css?raw";
 import "./renderer.css";
 import "./workspace.css";
@@ -59,6 +60,8 @@ export function Workspace({
   } | null>(null);
   const [modal, setModal] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  /** AI 상담에서 넘겨받아 AI 수정 창에 미리 채울 요청 */
+  const [aiInstruction, setAiInstruction] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const latestSchema = useRef(schema);
   useEffect(() => {
@@ -285,7 +288,10 @@ export function Workspace({
           <button
             className="button secondary"
             disabled={busy}
-            onClick={() => setAiOpen(true)}
+            onClick={() => {
+              setAiInstruction("");
+              setAiOpen(true);
+            }}
           >
             AI 수정
           </button>
@@ -514,8 +520,18 @@ export function Workspace({
           }}
           onUndo={undo}
           canUndo={!!previous}
+          initialInstruction={aiInstruction}
         />
       )}
+      <ChatWidget
+        page="editor"
+        disabledActions={busy ? ["open-ai-edit"] : []}
+        onAction={(action, answer) => {
+          if (action !== "open-ai-edit" || busy) return;
+          setAiInstruction(answer.editInstruction ?? "");
+          setAiOpen(true);
+        }}
+      />
       <dialog
         ref={dialog}
         className="finalize-dialog"
