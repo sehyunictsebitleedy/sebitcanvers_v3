@@ -2,14 +2,14 @@
 
 ## 현재 상태 — 2026-11-04
 
-서버에 앱 설치와 백엔드 실행을 완료했습니다. **가비아 외부 TCP 80·443 허용과 HTTPS 인증서 발급은 대기 중이며 공개 서비스 완료 상태가 아닙니다.** 외부 80번 접속은 시간 초과였고 서버 자체 UFW는 비활성입니다. 가비아 방화벽/보안그룹 규칙 확인이 필요합니다.
+**HTTPS 공개 접속을 활성화했습니다:** https://1.201.110.199/ . 사용자 방화벽 변경 후 인증서를 발급하고 HTTP→HTTPS 이동과 외부 health·사용량 응답을 확인했습니다. Chrome에서 홈·생성 화면·관리자 로그인 화면 로딩과 secure context를 확인했고 JavaScript 오류는 없었습니다. 인증서 갱신 리허설도 통과했습니다. 현재 게시본은 없어 `/dashboard`는 게시 전 안내를 표시합니다. 실제 관리자 로그인·게시·외부 AI 수정/상담 전체 흐름 검수는 별도입니다.
 
 | 항목 | 설정 |
 |---|---|
 | 서버 | `1.201.110.199`, Ubuntu 24.04.4 LTS, 1 vCPU / 2GB / 50GB |
 | SSH | ubuntu, 22번, 사용자 로컬 키페어 사용 |
 | 구성 | 프론트 정적 파일 + Nginx + Node.js 24.22.2 API |
-| 예정 주소 | `https://1.201.110.199/` (HTTPS 활성화 후) |
+| 공개 주소 | `https://1.201.110.199/` |
 | 코드 | `/srv/sebit/releases/20261104-d8934e7`, `/srv/sebit/current` 링크 |
 | 웹 루트 | `/srv/sebit/current/sebitcanvers_v3/frontend/dist` |
 | 백엔드 | `sebit.service`, `127.0.0.1:3001`, sebit 전용 계정 |
@@ -19,7 +19,7 @@
 
 로컬 CMS 계정·초안·게시본, 사용량 및 AI 이벤트 DB를 SQLite 일관된 스냅샷으로 이전했습니다. 관리자 비밀번호는 기존 것을 사용하되 로그인 세션은 이전하지 않았으므로 새 서버에서 다시 로그인해야 합니다. 브라우저에만 저장된 최근 작업은 주소가 바뀌면 자동 이전되지 않습니다. 새 서버 사용 후 로컬 DB를 다시 덮어쓰지 마세요.
 
-## 외부 공개를 마무리하는 순서
+## HTTPS 설정·재검증 절차 (초기 활성화 완료)
 
 1. 가비아 콘솔에서 해당 서버 보안그룹/방화벽에 인바운드 **TCP 80·443, 소스 0.0.0.0/0** 허용. 3001은 공개하지 않습니다. SSH 22는 운영자 접속용입니다.
 2. SSH 접속 후 준비한 스크립트 실행:
@@ -28,12 +28,12 @@
    bash ~/.sebit-stage/gabia-enable-https.sh
    ```
 
-   이 스크립트는 Let's Encrypt IP 인증서를 발급한 뒤 Nginx HTTPS 설정과 자동 갱신 타이머를 활성화합니다. 실패하면 출력을 확인하고 중단 원인을 해결하세요. 현재 HTTP는 ACME 검증 경로만 제공하며 나머지는 503을 반환하도록 준비했습니다.
+   이 스크립트는 Let's Encrypt IP 인증서를 발급한 뒤 Nginx HTTPS 설정과 자동 갱신 타이머를 활성화합니다. 실패하면 출력을 확인하고 중단 원인을 해결하세요. 현재 HTTP는 ACME 검증 경로와 HTTPS 리다이렉트를 제공합니다.
 3. 외부에서 홈, `/api/health`의 `{"ready":true}`, `/#create` 사용량, `/admin` 로그인과 마스터 면제, 생성·수정·상담, 게시본을 검수합니다.
 4. 인증서 갱신 리허설과 타이머 확인:
 
    ```bash
-   sudo /opt/certbot/bin/certbot renew --dry-run
+   sudo /opt/certbot/bin/certbot renew --dry-run --no-random-sleep-on-renew
    systemctl list-timers sebit-certbot.timer
    ```
 
