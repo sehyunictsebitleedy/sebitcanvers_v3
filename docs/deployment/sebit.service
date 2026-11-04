@@ -1,0 +1,23 @@
+[Unit]
+Description=SEbit Canvers API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=sebit
+Group=sebit
+WorkingDirectory=/srv/sebit/current/backend
+ExecStart=/usr/local/bin/node --env-file=/etc/sebit/backend.env --import tsx src/index.ts
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/sebit
+
+[Install]
+WantedBy=multi-user.target
