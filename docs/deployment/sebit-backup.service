@@ -1,0 +1,8 @@
+[Unit]
+Description=Back up SEbit SQLite databases and configuration
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/sebit-backup
+UMask=0077
+Nice=10

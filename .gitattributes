@@ -1,0 +1,4 @@
+docs/deployment/*.sh text eol=lf
+docs/deployment/*.service text eol=lf
+docs/deployment/*.timer text eol=lf
+docs/deployment/*.conf text eol=lf
