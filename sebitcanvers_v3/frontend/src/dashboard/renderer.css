@@ -9,14 +9,16 @@
   background: var(--db-bg);
   background-image:
     radial-gradient(ellipse 850px 520px at 100% 0%,
-      color-mix(in srgb, var(--db-primary) 18%, transparent), transparent 75%),
-    radial-gradient(ellipse 700px 600px at 15% 90%,
       color-mix(in srgb, var(--db-primary) 7%, transparent), transparent 75%),
+    radial-gradient(ellipse 700px 600px at 15% 90%,
+      color-mix(in srgb, var(--db-primary) 3%, transparent), transparent 75%),
     linear-gradient(145deg,
       color-mix(in srgb, var(--db-surface) 40%, transparent), transparent 60%);
   font-family: Pretendard, "Malgun Gothic", system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
   text-align: left;
   isolation: isolate;
 }
@@ -28,22 +30,23 @@
 .schema-dashboard .db-nav {
   background: var(--db-bg);
   background-image: linear-gradient(180deg,
-    color-mix(in srgb, var(--db-primary) 6%, transparent), transparent 65%);
+    color-mix(in srgb, var(--db-surface) 65%, transparent), transparent 85%);
   border-right: 1px solid var(--db-border);
   padding: 32px 18px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 36px;
 }
 .schema-dashboard .db-logo {
-  font-size: 23px;
-  font-weight: 750;
-  color: var(--db-primary);
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.7px;
+  color: var(--db-text);
 }
 .schema-dashboard .db-nav-items {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 6px;
 }
 .schema-dashboard .db-nav-items > span {
   display: flex;
@@ -51,6 +54,7 @@
   gap: 8px;
   min-width: 0;
   padding: 12px;
+  border: 1px solid transparent;
   border-radius: 6px;
   font-size: 13px;
   color: var(--db-muted);
@@ -62,8 +66,10 @@
 .schema-dashboard.db-nav-top .db-nav-items > span { max-width: 240px; }
 .schema-dashboard .db-nav-items > .active {
   color: var(--db-text);
-  background: color-mix(in srgb, var(--db-primary) 22%, transparent);
-  border: 1px solid color-mix(in srgb, var(--db-primary) 45%, transparent);
+  background: color-mix(in srgb, var(--db-primary) 9%, transparent);
+  border-color: color-mix(in srgb, var(--db-primary) 12%, transparent);
+  box-shadow: inset 2px 0 0 var(--db-primary);
+  font-weight: 600;
 }
 .schema-dashboard .db-sample {
   font-size: 10px;
@@ -71,25 +77,29 @@
   letter-spacing: 1px;
 }
 .schema-dashboard .db-body {
-  padding: 30px;
+  padding: 36px;
   min-width: 0;
 }
 .schema-dashboard .db-heading {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 26px;
+  margin-bottom: 30px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid color-mix(in srgb, var(--db-border) 65%, transparent);
   gap: 20px;
 }
 .schema-dashboard .db-heading h2 {
-  font-size: 25px;
-  letter-spacing: -0.6px;
+  font-size: 27px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.9px;
   color: var(--db-text);
 }
 .schema-dashboard .db-heading p {
   color: var(--db-muted);
   font-size: 12px;
-  margin-top: 6px;
+  margin-top: 9px;
 }
 .schema-dashboard .db-section {
   display: grid;
@@ -100,35 +110,43 @@
 .schema-dashboard .db-card {
   position: relative;
   min-width: 0;
-  padding: 22px;
+  padding: 24px;
   background: var(--db-surface);
-  border: 1px solid var(--db-border);
+  border: 1px solid color-mix(in srgb, var(--db-border) 78%, transparent);
   border-radius: var(--db-radius);
   overflow-wrap: anywhere;
   box-shadow:
-    0 6px 20px rgb(0 0 0 / 5%),
+    0 2px 6px rgb(0 0 0 / 2%),
     inset 0 1px 0 color-mix(in srgb, var(--db-text) 4%, transparent);
 }
 .schema-dashboard .db-card h3 {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--db-text);
 }
+.schema-dashboard .db-kpi-heading h3 { color: var(--db-muted); font-weight: 500; }
+.schema-dashboard .db-chart polyline { stroke-linecap: round; stroke-linejoin: round; }
+.schema-dashboard .db-chart polygon { opacity: .08; }
+.schema-dashboard .db-chart circle { stroke: var(--db-surface); stroke-width: 1.5px; }
 .schema-dashboard .db-value {
-  font-size: 30px;
-  font-weight: 700;
-  letter-spacing: -0.6px;
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -1.2px;
   font-variant-numeric: tabular-nums;
-  margin-top: 10px;
+  margin-top: 18px;
 }
 .schema-dashboard .db-value > span {
-  font-size: 20px;
-  margin-left: 3px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--db-muted);
+  margin-left: 6px;
 }
 .schema-dashboard .db-change {
   font-size: 12px;
   color: #7ee3b5;
-  margin-top: 10px;
+  margin-top: 16px;
 }
 .schema-dashboard .db-change.negative {
   color: #ffacb8;
@@ -142,7 +160,7 @@
   width: 100%;
   height: 230px;
   display: block;
-  margin-top: 12px;
+  margin-top: 20px;
   overflow: visible;
 }
 .schema-dashboard .db-axis {
@@ -152,6 +170,8 @@
 .schema-dashboard .db-gridline {
   stroke: var(--db-border);
   stroke-width: 1;
+  stroke-opacity: .55;
+  stroke-dasharray: 3 5;
 }
 .schema-dashboard .db-series,
 .schema-dashboard .db-legend {
@@ -216,16 +236,17 @@
 .schema-dashboard td {
   text-align: left;
   border: 0;
-  border-bottom: 1px solid var(--db-border);
-  padding: 12px 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--db-border) 65%, transparent);
+  padding: 14px 12px;
   color: var(--db-text);
   overflow-wrap: anywhere;
   max-width: 350px;
 }
 .schema-dashboard th {
   font-size: 11px;
-  font-weight: 400;
+  font-weight: 500;
   color: var(--db-muted);
+  background: color-mix(in srgb, var(--db-bg) 55%, var(--db-surface));
 }
 .schema-dashboard tr:last-child td {
   border-bottom: 0;
@@ -291,14 +312,14 @@
   font-size: 13px;
 }
 .schema-dashboard.db-style-modern .db-card {
-  box-shadow: 0 5px 18px #23395509;
+  box-shadow: 0 2px 8px #23395505;
 }
 .schema-dashboard.db-style-minimal .db-card {
   box-shadow: none;
   border-width: 1px;
 }
 .schema-dashboard.db-style-corporate .db-card {
-  border-top: 3px solid var(--db-primary);
+  border-top-color: color-mix(in srgb, var(--db-primary) 25%, var(--db-border));
 }
 .schema-dashboard.db-style-corporate .db-heading h2 {
   font-weight: 750;
