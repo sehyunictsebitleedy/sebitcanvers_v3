@@ -549,3 +549,35 @@
 .schema-dashboard .db-header-date time { color: var(--db-text); font-variant-numeric: tabular-nums; }
 .schema-dashboard .db-kpi-heading { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
 .schema-dashboard .db-kpi-icon { flex-shrink: 0; }
+.schema-dashboard .db-kpi-icon-wrap {
+  width: 36px; height: 36px; flex-shrink: 0;
+  display: grid; place-items: center; border-radius: 10px;
+  background: color-mix(in srgb, var(--db-primary) 9%, transparent);
+}
+.schema-dashboard .db-kpi-heading { align-items: center; }
+.schema-dashboard .db-icon-heading { display: flex; align-items: center; gap: 9px; }
+.schema-dashboard .db-icon-heading svg { flex-shrink: 0; color: var(--db-primary); }
+.schema-dashboard .db-trend-badge {
+  display: inline-flex; align-items: center; gap: 5px; padding: 3px 7px;
+  border-radius: 5px; background: color-mix(in srgb, currentColor 8%, transparent);
+  font-size: 11px; font-weight: 600;
+}
+.schema-dashboard .db-cell-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 500; }
+.schema-dashboard .db-cell-success { color: #127354; background: #15805d12; }
+.schema-dashboard .db-cell-pending { color: #925e12; background: #b67b1712; }
+.schema-dashboard .db-cell-error { color: #b32943; background: #bc345012; }
+.schema-dashboard.db-style-dark .db-cell-success { color: #89d9b7; background: #89d9b712; }
+.schema-dashboard.db-style-dark .db-cell-pending { color: #e9c080; background: #e9c08012; }
+.schema-dashboard.db-style-dark .db-cell-error { color: #f1a1b0; background: #f1a1b012; }
+.schema-dashboard .db-cell-role { color: var(--db-muted); background: color-mix(in srgb, var(--db-muted) 8%, transparent); }
+.schema-dashboard .db-team { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; color: var(--db-muted); }
+.schema-dashboard .db-avatar { display: grid; place-items: center; flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; color: var(--db-text); background: color-mix(in srgb, var(--db-primary) 12%, var(--db-surface)); font-size: 10px; font-weight: 600; }
+.schema-dashboard .db-task-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 18px; }
+.schema-dashboard .db-task-count { padding: 2px 7px; background: color-mix(in srgb, var(--db-muted) 10%, transparent); color: var(--db-muted); border-radius: 5px; font-size: 11px; }
+.schema-dashboard .db-task-list ul { margin: 0; padding: 0; list-style: none; }
+.schema-dashboard .db-task-list li { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; padding: 16px 0; border-top: 1px solid color-mix(in srgb, var(--db-border) 65%, transparent); }
+.schema-dashboard .db-task-list li > strong { font-size: 13px; font-weight: 500; color: var(--db-text); }
+.schema-dashboard .db-task-planned .db-icon-heading svg { color: var(--db-muted); }
+.schema-dashboard .db-task-success .db-icon-heading svg { color: #198268; }
+.schema-dashboard.db-style-dark .db-task-success .db-icon-heading svg { color: #89d9b7; }
+.schema-dashboard .db-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

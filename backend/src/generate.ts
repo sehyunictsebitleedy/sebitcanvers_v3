@@ -94,6 +94,7 @@ export async function generate(
     task: "Customize the example dashboard content and sample data for the additional request. Preserve project, theme, layout, navigation.type, mainVisual, settings and selected component types. Return full JSON.",
     options,
     designDirection: typeDesignBrief[options.type],
+    visualDetails: "Use meaningful KPI icons from the allowed enum (chart, users, wallet, target, activity). Preserve task/team columns for project task lists. Use explicit readable status text for status columns; never invent trend history or personal profile data just for decoration.",
     composition: "Follow the example's type-specific section order, component widths and chart styles. Customize Korean titles and coherent sample data for the user request. Do not revert every type to the same four KPIs plus area/donut layout. Include only selected component types. Never add unsupported components or interactions. Preserve the user's chosen style and colors.",
     contract,
     example: base,

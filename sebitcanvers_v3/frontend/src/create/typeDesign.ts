@@ -14,6 +14,9 @@ export function applyTypeDesign(schema: DashboardSchema, type: keyof typeof type
   const trend = charts.components[0];
   const distribution = charts.components[1];
   const table = tables.components[0];
+  const icons = { 0: ["users", "users", "target", "activity"], 1: ["users", "activity", "target", "users"], 3: ["chart", "target", "activity", "users"], 4: ["chart", "activity", "activity", "target"] } as const;
+  kpis.components.forEach((c, i) => { if (c.type === "kpi") c.icon = icons[type][i % 4]; });
+  schema.navigation.items.forEach((item, i) => { item.icon = (["dashboard", "chart", "folder"] as const)[i % 3]; });
   if (trend.type !== "chart" || distribution.type !== "chart" || table.type !== "table") throw new Error("Invalid base design");
   const renameKpis = (titles: string[], values: number[], units: string[]) => kpis.components.forEach((c, i) => {
     if (c.type === "kpi") { c.title = titles[i]; c.value = values[i]; c.unit = units[i]; }

@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { Activity, ChartNoAxesCombined, Target, Users, Wallet } from "lucide-react";
+import { Activity, ChartNoAxesCombined, Target, Users, Wallet, CircleCheck, Clock3, CircleAlert, ShieldCheck, ListTodo, Bell, TrendingUp, TrendingDown } from "lucide-react";
 import { validateDashboard } from "./schema";
 import { AssetImage } from "./AssetImage";
 import { NavigationIcon } from "./NavigationEditor";
@@ -188,7 +188,24 @@ export function Chart({ component }: { component: ChartComponent }) {
     </>
   );
 }
-function Content({ component, editing = false }: { component: DashboardComponent; editing?: boolean }) {
+function TableValue({ value, column }: { value: string | number; column: {key: string; label: string} }) {
+  const text = String(value);
+  if (/^(status|state|상태)$/i.test(column.key) || /^(상태|진행 상태)$/.test(column.label)) {
+    const state = /^(정상|활성|완료|성공|active|healthy|completed|success)$/i.test(text) ? "success"
+      : /^(진행 중|진행중|대기|예정|주의|pending|in progress|warning)$/i.test(text) ? "pending"
+      : /^(오류|실패|장애|error|failed|down)$/i.test(text) ? "error" : null;
+    if (state) {
+      const Icon = state === "success" ? CircleCheck : state === "pending" ? Clock3 : CircleAlert;
+      return <span className={`db-cell-badge db-cell-${state}`}><Icon size={13} aria-hidden="true" />{text}</span>;
+    }
+  }
+  if (/^(role|권한)$/i.test(column.key) || column.label === "권한")
+    return <span className="db-cell-badge db-cell-role"><ShieldCheck size={13} aria-hidden="true" />{text}</span>;
+  if (/^(team|담당 팀)$/i.test(column.key) || column.label === "담당 팀")
+    return <span className="db-team"><span className="db-avatar" aria-hidden="true">{Array.from(text)[0] || "·"}</span>{text}</span>;
+  return <>{value}</>;
+}
+function Content({ component, editing = false, projectType }: { component: DashboardComponent; editing?: boolean; projectType?: string }) {
   if (component.type === "statusBadge") {
     const state = {
       info: { label: "안내", symbol: "ⓘ" },
@@ -263,7 +280,7 @@ function Content({ component, editing = false }: { component: DashboardComponent
   if (component.type === "progress")
     return (
       <>
-        <h3>{component.title}</h3>
+        <h3 className="db-icon-heading"><Target size={17} aria-hidden="true" />{component.title}</h3>
         <p className="db-value">
           {Math.round((component.value / component.max) * 100)}
           <span>%</span>
@@ -281,7 +298,7 @@ function Content({ component, editing = false }: { component: DashboardComponent
   if (component.type === "notification")
     return (
       <div className={`db-notification ${component.status}`}>
-        <h3>{component.title}</h3>
+        <h3 className="db-icon-heading"><Bell size={17} aria-hidden="true" />{component.title}</h3>
         <p>{component.message}</p>
       </div>
     );
@@ -293,8 +310,9 @@ function Content({ component, editing = false }: { component: DashboardComponent
       <>
         <div className="db-kpi-heading">
           <h3>{component.title}</h3>
-          {Icon && <Icon className="db-kpi-icon" aria-hidden="true" size={20}
-            style={{ color: component.color ?? "var(--db-primary)" }} />}
+          {Icon && <span className="db-kpi-icon-wrap" style={{ color: component.color ?? "var(--db-primary)" }}>
+            <Icon className="db-kpi-icon" aria-hidden="true" size={19} />
+          </span>}
         </div>
         <p className="db-value" style={{ color: component.color ?? undefined }}>
           {component.value.toLocaleString("en-US", {
@@ -303,7 +321,10 @@ function Content({ component, editing = false }: { component: DashboardComponent
           <span>{component.unit}</span>
         </p>
         <p className={`db-change ${component.change < 0 ? "negative" : ""}`}>
-          {component.change >= 0 ? "↑" : "↓"} {Math.abs(component.change)}%{" "}
+          <strong className="db-trend-badge">
+            {component.change >= 0 ? <TrendingUp size={13} aria-hidden="true" /> : <TrendingDown size={13} aria-hidden="true" />}
+            {component.change >= 0 ? "+" : "−"}{Math.abs(component.change)}%
+          </strong>{" "}
           <span>지난 기간 대비</span>
         </p>
       </>
@@ -312,10 +333,21 @@ function Content({ component, editing = false }: { component: DashboardComponent
   if (component.type === "chart")
     return (
       <>
-        <h3>{component.title}</h3>
+        <h3 className="db-icon-heading"><ChartNoAxesCombined size={17} aria-hidden="true" />{component.title}</h3>
         <Chart component={component} />
       </>
     );
+  if (projectType === "project" && component.layout.columnSpan <= 4 && component.columns.length === 2 && component.columns[0].key === "task" && component.columns[1].key === "team") {
+    const phase = component.title === "완료" ? "success" : component.title === "진행 중" ? "active" : "planned";
+    const Icon = phase === "success" ? CircleCheck : phase === "active" ? Activity : ListTodo;
+    return <div className={`db-task-list db-task-${phase}`}>
+      <div className="db-task-heading"><h3 className="db-icon-heading"><Icon size={17} aria-hidden="true" />{component.title}</h3><span className="db-task-count">{component.rows.length}<span className="db-visually-hidden">개 업무</span></span></div>
+      {component.rows.length ? <ul>{component.rows.map((row, i) => <li key={i}>
+        <strong>{row.task}</strong>
+        <TableValue value={row.team} column={component.columns[1]} />
+      </li>)}</ul> : <p className="db-empty">표시할 업무가 없습니다.</p>}
+    </div>;
+  }
   return (
     <>
       <h3>{component.title}</h3>
@@ -335,7 +367,7 @@ function Content({ component, editing = false }: { component: DashboardComponent
               {component.rows.map((row, i) => (
                 <tr key={i}>
                   {component.columns.map((column) => (
-                    <td key={column.key}>{row[column.key]}</td>
+                    <td key={column.key}><TableValue value={row[column.key]} column={column} /></td>
                   ))}
                 </tr>
               ))}
@@ -498,7 +530,7 @@ export function DashboardRenderer({
                         aria-pressed={selectedId === component.id}
                       />
                     )}
-                    <Content component={component} editing={!!onSelect} />
+                    <Content component={component} editing={!!onSelect} projectType={data.project.type} />
                   </article>
                 ))}
             </section>
