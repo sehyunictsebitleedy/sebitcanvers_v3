@@ -11,6 +11,7 @@ export function AiEditDrawer({
   onApply,
   onUndo,
   canUndo,
+  initialInstruction = "",
 }: {
   schema: DashboardSchema;
   selectedId?: string;
@@ -19,8 +20,10 @@ export function AiEditDrawer({
   onApply: (base: DashboardSchema, next: DashboardSchema) => boolean;
   onUndo: () => void;
   canUndo: boolean;
+  /** AI 상담에서 넘겨받은 수정 요청. 사용자가 확인 후 직접 적용한다. */
+  initialInstruction?: string;
 }) {
-  const [instruction, setInstruction] = useState("");
+  const [instruction, setInstruction] = useState(initialInstruction.slice(0, 1000));
   const [scope, setScope] = useState("all");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");

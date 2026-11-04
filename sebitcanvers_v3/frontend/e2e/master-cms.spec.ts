@@ -3,6 +3,7 @@ import { once } from "node:events";
 import { CmsStore } from "../../../backend/src/cms";
 import { createServer } from "node:http";
 import { cmsRoute } from "../../../backend/src/cmsRoutes";
+import { guideAnswer } from "../../../backend/src/chat/knowledge";
 
 test("master imports, edits, saves, publishes and restores; anonymous visitor sees only published content", async ({ page, context, browser }, info) => {
   const cms = new CmsStore(":memory:");
@@ -17,8 +18,19 @@ test("master imports, edits, saves, publishes and restores; anonymous visitor se
     await route.fulfill({ response });
   });
   const publicPage = await visitor.newPage();
+  let editRequests = 0;
+  await page.route("**/api/edit", async route => { editRequests++; await route.abort(); });
+  await page.route("**/api/chat", async route => {
+    const input = route.request().postDataJSON();
+    await route.fulfill({ json: { ...guideAnswer(input.message, input.page), source: "guide", requestId: "cms-chat-qa" } });
+  });
   try {
     await page.goto("/#create");
+    await page.getByRole("button", {name:"AI 챗봇 문의",exact:true}).click();
+    await page.getByLabel("AI 챗봇 질문").fill("마스터 게시 방법 알려줘");
+    await page.getByRole("button", {name:"보내기",exact:true}).click();
+    await expect(page.getByRole("log")).toContainText("서버 초안 저장");
+    await page.getByRole("button", {name:"상담 창 닫기",exact:true}).click();
     await page.getByLabel("프로젝트 이름", {exact:true}).fill("마스터 검수 대시보드");
     await page.getByRole("button", {name:"샘플 미리보기 만들기"}).click();
     await expect(page.locator(".schema-dashboard")).toBeVisible();
@@ -36,6 +48,14 @@ test("master imports, edits, saves, publishes and restores; anonymous visitor se
     await publicPage.reload();
     await expect(publicPage.locator(".schema-dashboard")).toBeVisible();
     await page.getByRole("button", {name:"초안 편집",exact:true}).click();
+    await page.getByRole("button", {name:"AI 챗봇 문의",exact:true}).click();
+    await page.getByLabel("AI 챗봇 질문").fill("첫 번째 지표 제목을 새 지표로 바꿔줘");
+    await page.getByRole("button", {name:"보내기",exact:true}).click();
+    await page.getByRole("button", {name:"AI 수정 열기",exact:true}).click();
+    await expect(page.getByLabel("수정 요청",{exact:true})).toHaveValue("첫 번째 지표 제목을 새 지표로 바꿔줘");
+    expect(editRequests).toBe(0);
+    await page.getByRole("dialog").getByRole("button", {name:"닫기",exact:true}).click();
+    await expect(page.getByRole("button", {name:"AI 챗봇 문의",exact:true})).toBeVisible();
     await page.getByLabel("제목", {exact:true}).fill("관리자 변경 지표");
     await page.getByRole("button", {name:"변경 적용",exact:true}).click();
     await page.getByRole("button", {name:"서버 초안 저장",exact:true}).click();
