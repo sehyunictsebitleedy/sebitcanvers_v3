@@ -15,7 +15,7 @@ function fixture() {
   writeFileSync(join(root, "sebitcanvers_v3/frontend/dist/index.html"), "sample");
   const env = { NODE_ENV: "production", HOST: "127.0.0.1", APP_ORIGIN: "https://dashboard.example.com",
     AI_TRUSTED_PROXIES: "127.0.0.1", AI_USAGE_DB: join(data, "usage.sqlite"),
-    AI_TELEMETRY_DB: join(data, "events.sqlite"), OPENAI_API_KEY: "SECRET-SENTINEL", OPENAI_MODEL: "MODEL-SENTINEL" };
+    AI_TELEMETRY_DB: join(data, "events.sqlite"), CMS_DB: join(data, "cms.sqlite"), OPENAI_API_KEY: "SECRET-SENTINEL", OPENAI_MODEL: "MODEL-SENTINEL" };
   return { root, data, env, cleanup() {
     assert.equal(dirname(temp), realpathSync(tmpdir()));
     assert.ok(temp.includes("sebit-deploy-check-"));

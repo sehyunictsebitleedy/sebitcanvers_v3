@@ -10,8 +10,11 @@ import { readyOptionsSchema } from "../../sebitcanvers_v3/frontend/src/create/co
 import { editRequestSchema } from "../../sebitcanvers_v3/frontend/src/dashboard/aiPatch";
 import type { AiEvent, TelemetryStore, TokenUsage } from "./telemetry";
 import { clientIpResolver } from "./clientIp";
+import { cmsRoute } from "./cmsRoutes";
+import type { CmsStore } from "./cms";
 
 export type Config = {
+  cms?: CmsStore;
   key: string;
   model: string;
   origin: string;
@@ -44,6 +47,7 @@ export function createApi(config: Config, provider?: Provider) {
   const clients = new Map<string, { count: number; until: number }>();
   let active = 0;
   return createServer(async (req, res) => {
+    if (await cmsRoute(req, res, config, () => clientIp(req))) return;
     const requestId = randomUUID();
     const started = Date.now();
     const send = (status: number, payload: unknown) => {

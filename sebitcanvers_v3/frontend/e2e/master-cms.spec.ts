@@ -1,0 +1,62 @@
+import { test, expect } from "@playwright/test";
+import { once } from "node:events";
+import { CmsStore } from "../../../backend/src/cms";
+import { createServer } from "node:http";
+import { cmsRoute } from "../../../backend/src/cmsRoutes";
+
+test("master imports, edits, saves, publishes and restores; anonymous visitor sees only published content", async ({ page, context, browser }, info) => {
+  const cms = new CmsStore(":memory:");
+  await cms.setPassword("qa-master-password-123");
+  const server = createServer(async (req, res) => { if (!await cmsRoute(req, res, { cms, origin: "http://127.0.0.1:5174" }, () => "127.0.0.1")) { res.writeHead(404); res.end(); } });
+  server.listen(0, "127.0.0.1"); await once(server, "listening");
+  const api = `http://127.0.0.1:${(server.address() as {port:number}).port}`;
+  const visitor = await browser.newContext();
+  for (const ctx of [context, visitor]) await ctx.route("**/api/cms/**", async route => {
+    const url = new URL(route.request().url());
+    const response = await route.fetch({ url: api + url.pathname });
+    await route.fulfill({ response });
+  });
+  const publicPage = await visitor.newPage();
+  try {
+    await page.goto("/#create");
+    await page.getByLabel("프로젝트 이름", {exact:true}).fill("마스터 검수 대시보드");
+    await page.getByRole("button", {name:"샘플 미리보기 만들기"}).click();
+    await expect(page.locator(".schema-dashboard")).toBeVisible();
+    await page.goto("/admin");
+    await page.getByLabel("비밀번호", {exact:true}).fill("qa-master-password-123");
+    await page.getByRole("button", {name:"로그인",exact:true}).click();
+    await page.getByLabel("저장된 시안").selectOption({label:"마스터 검수 대시보드"});
+    await page.getByRole("button", {name:"서버 초안으로 가져오기"}).click();
+    await expect(page.getByRole("alert")).toContainText("가져왔습니다");
+    await publicPage.goto("http://127.0.0.1:5174/dashboard");
+    await expect(publicPage.getByRole("status")).toContainText("아직 게시 전");
+    page.on("dialog", dialog => dialog.accept());
+    await page.getByRole("button", {name:"저장본 게시",exact:true}).click();
+    await expect(page.getByRole("alert")).toContainText("게시했습니다");
+    await publicPage.reload();
+    await expect(publicPage.locator(".schema-dashboard")).toBeVisible();
+    await page.getByRole("button", {name:"초안 편집",exact:true}).click();
+    await page.getByLabel("제목", {exact:true}).fill("관리자 변경 지표");
+    await page.getByRole("button", {name:"변경 적용",exact:true}).click();
+    await page.getByRole("button", {name:"서버 초안 저장",exact:true}).click();
+    await expect(page.getByText(/서버 초안을 저장했습니다/)).toBeVisible();
+    await publicPage.reload();
+    await expect(publicPage.getByText("관리자 변경 지표", {exact:true})).toHaveCount(0);
+    await page.getByRole("button", {name:"관리 화면",exact:true}).click();
+    await page.getByRole("button", {name:"저장본 미리보기",exact:true}).click();
+    await expect(page.getByText("관리자 변경 지표",{exact:true})).toBeVisible();
+    await page.getByRole("button", {name:"관리 화면으로",exact:true}).click();
+    await page.getByRole("button", {name:"저장본 게시",exact:true}).click();
+    await expect(page.getByRole("alert")).toContainText("게시했습니다");
+    await publicPage.reload();
+    await expect(publicPage.getByText("관리자 변경 지표",{exact:true})).toBeVisible();
+    await expect(publicPage.locator(".db-select")).toHaveCount(0);
+    await page.getByRole("button", {name:"이전 게시본 복원",exact:true}).click();
+    await expect(page.getByRole("alert")).toContainText("복원했습니다");
+    await publicPage.reload();
+    await expect(publicPage.getByText("관리자 변경 지표",{exact:true})).toHaveCount(0);
+    await page.screenshot({path:info.outputPath("master-admin.png"),fullPage:true});
+    await page.getByRole("button", {name:"로그아웃",exact:true}).click();
+    await expect(page.getByRole("button", {name:"로그인",exact:true})).toBeVisible();
+  } finally { await visitor.close(); server.close(); server.closeAllConnections(); cms.close(); }
+});

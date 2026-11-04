@@ -22,11 +22,13 @@ export function Workspace({
   onBack,
   startInPreview = false,
   canWrite = () => true,
+  managed,
 }: {
   initial: DashboardSchema;
   onBack: () => void;
   startInPreview?: boolean;
   canWrite?: () => boolean;
+  managed?: { save: (schema: DashboardSchema) => Promise<void> };
 }) {
   const [schema, setSchema] = useState(() =>
     !startInPreview && ["finalized", "exported"].includes(initial.status)
@@ -34,6 +36,9 @@ export function Workspace({
       : dashboardSchema.parse(initial),
   );
   const [previous, setPrevious] = useState<DashboardSchema | null>(null);
+  const [serverSaved, setServerSaved] = useState(() => JSON.stringify(initial));
+  const [serverSaving, setServerSaving] = useState(false);
+  const serverDirty = !!managed && JSON.stringify(schema) !== serverSaved;
   const [regenerating, setRegenerating] = useState(false);
   const [resetBusy, setResetBusy] = useState(false);
   const [hasInitial] = useState(() => {
@@ -69,6 +74,7 @@ export function Workspace({
   const initialRef = useRef(schema);
   const save = (data: DashboardSchema) => {
     if (!canWrite()) return false;
+    if (managed) { setStorageStatus("서버 초안 저장 버튼으로 저장하세요."); return true; }
     try {
       saveProject(localStorage, data);
       setUnsaved(false);
@@ -92,14 +98,14 @@ export function Workspace({
   }, [modal]);
   useEffect(() => {
     const leave = (event: BeforeUnloadEvent) => {
-      if (unsaved || busy) {
+      if (unsaved || busy || serverDirty) {
         event.preventDefault();
         event.returnValue = "";
       }
     };
     window.addEventListener("beforeunload", leave);
     return () => window.removeEventListener("beforeunload", leave);
-  }, [unsaved, busy]);
+  }, [unsaved, busy, serverDirty]);
   const commit = (next: DashboardSchema, fromAi = false) => {
     if (!canWrite()) return false;
     if (lock.current && !fromAi) return false;
@@ -267,7 +273,7 @@ export function Workspace({
           disabled={busy}
           onClick={() => {
             if (
-              !unsaved ||
+              (!unsaved && !serverDirty) ||
               window.confirm(
                 "저장되지 않은 변경 내용이 있습니다. 홈으로 나가면 현재 변경을 잃을 수 있습니다. 나가시겠어요?",
               )
@@ -275,13 +281,19 @@ export function Workspace({
               onBack();
           }}
         >
-          <ArrowLeft size={16} />홈
+          <ArrowLeft size={16} />{managed ? "관리 화면" : "홈"}
         </button>
         <div className="workspace-project">
           <h1>{schema.project.name}</h1>
           <span>샘플 데이터 편집</span>
         </div>
         <div className="workspace-actions">
+          {managed && <button className="button primary" disabled={busy} onClick={async () => {
+            setBusy(true); setServerSaving(true); lock.current = true;
+            try { await managed.save(schema); setServerSaved(JSON.stringify(schema)); setExportStatus("서버 초안을 저장했습니다. 관리 화면에서 게시할 수 있습니다."); }
+            catch (error) { setExportStatus(error instanceof Error ? error.message : "서버 저장 실패"); }
+            finally { setBusy(false); setServerSaving(false); lock.current = false; }
+          }}>{serverSaving ? "서버 저장 중…" : "서버 초안 저장"}</button>}
           <button
             className="button secondary"
             disabled={busy}
@@ -312,14 +324,15 @@ export function Workspace({
           >
             <Download size={16} />
             {busy
-              ? resetBusy ? "초기화 중" : aiBusy
+              ? serverSaving ? "서버 저장 중" : resetBusy ? "초기화 중" : aiBusy
                 ? "AI 수정 중"
                 : "최종 검증 중"
               : "확정 및 다운로드"}
           </button>
         </div>
       </header>
-      <div className="workspace-status">
+      {managed && <div className="workspace-status"><span role="status">{serverDirty ? "서버에 저장하지 않은 변경이 있습니다." : "서버 초안 기준으로 편집 중입니다."} {exportStatus}</span></div>}
+      {!managed && <div className="workspace-status">
         <span role="status">{storageStatus}</span>
         <button onClick={() => save(schema)} disabled={busy}>
           다시 저장
@@ -357,6 +370,7 @@ export function Workspace({
         {!hasInitial && <span>최초 생성본 없음 · 이 프로젝트는 초기화할 수 없습니다.</span>}
         <span role="status">{exportStatus}</span>
       </div>
+      }
       <div className="workspace-layout">
         {!preview && (
           <aside className="workspace-tree">
