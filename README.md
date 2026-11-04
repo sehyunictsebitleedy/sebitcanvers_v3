@@ -21,6 +21,7 @@ v1.0(2026-09-30)의 요약입니다. 아래 기획 범위는 구현 완료를 �
 - AI 생성·수정, 9개 데이터 컴포넌트의 CMS 편집, 미리보기·확정·ZIP 다운로드와 로컬 저장·복구를 구현했습니다.
 - 최근 완료: **데이터 편집 창 키보드 초점 복원 개선**. 적용·취소·Esc 후 원래 버튼으로 복원하고 취소 데이터가 반영되지 않음을 확인했습니다. 최종 검증 창과 CMS 회귀를 포함해 Chrome·Edge 10개가 통과했습니다. 이전 AI 수정 창 개선, [실제 AI 결과 화면·ZIP 검수](docs/LOCAL_AI_QA.md)와 [통합 QA 결과](docs/RELEASE_QA.md)도 보관합니다.
 - 사용자 결정에 따라 **호스팅·도메인·실제 배포는 현재 작업에서 제외**합니다. 다음은 사용자 수동 사용성 피드백 반영과 [미확정 정책 정보](docs/POLICY_RELEASE.md) 정리입니다. 정책 전체는 검토본이며 외부 배포와 운영 Beta는 완료하지 않았습니다.
+- 최근 완료: 모든 화면 우측 하단 **AI 챗봇 문의** 버튼으로 이용 상담을 제공합니다. 편집 화면의 수정 요청은 기존 AI 수정 창으로 넘겨 확인 후 적용합니다. [AI 챗봇](docs/AI_CHATBOT.md) · AI 사용 설정은 [API 키 설정 가이드](API_KEY_SETTING.md)를 참고하세요.
 - 날짜별 변경 내용·검증 결과·브랜치 이력은 **[작업 내역](docs/WORK_LOG.md)**에서 확인하세요. 앞으로 상세 작업 기록은 해당 파일에만 추가합니다.
 - 공개 V1 전체 완료는 아직 아니며, 서비스 정책·실제 운영 환경·통합 QA 검수가 남아 있습니다.
 
@@ -190,3 +191,5 @@ npm.cmd run test:qa:preview
 - [Create 화면 구현](docs/CREATE_IMPLEMENTATION.md): 옵션, 요약, 저장·복원, 이미지 및 샘플 연결
 - [AI 생성·CMS·Finalize](docs/GENERATION_CMS_FINALIZE.md): 백엔드 환경변수·실행, 편집·확정·다운로드와 검수
 - [AI 수정 구현](docs/AI_EDIT_IMPLEMENTATION.md): Patch 계약, 수정 패널·요약·Undo, 실제 AI 검수 재개 방법
+- [API 키 설정 가이드](API_KEY_SETTING.md): pull 받은 뒤 OpenAI 키·모델 설정, 실행·확인·문제 해결
+- [AI 챗봇](docs/AI_CHATBOT.md): 상담 창·질의 가이드·바로가기, `/api/chat` 계약·대체 답변·한도, AI 수정 인계
