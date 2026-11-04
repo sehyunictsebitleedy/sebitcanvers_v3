@@ -13,6 +13,8 @@ import {
   PanelsTopLeft,
   SlidersHorizontal,
   ImagePlus,
+  LoaderCircle,
+  Sparkles,
   X,
 } from "lucide-react";
 import {
@@ -382,11 +384,32 @@ export function CreatePage({
           <li>완료되면 미리보기로 이동</li>
         </ol>
         {generation === "pending" ? (
-          <div className="generation-skeleton" aria-hidden="true">
-            <div />
-            <div />
-            <div />
-            <div />
+          <div className="generation-skeleton">
+            {[
+              { icon: PanelsTopLeft, label: "레이아웃 구성" },
+              { icon: BarChart3, label: "샘플 데이터 구성" },
+              { icon: SlidersHorizontal, label: "선택 스타일 반영" },
+            ].map(({ icon: Icon, label }) => (
+              <div className="generation-placeholder" key={label}>
+                <span><Icon size={18} aria-hidden="true" />{label}</span>
+                <i className="generation-shimmer" aria-hidden="true" />
+              </div>
+            ))}
+            <div className="generation-working">
+              <div className="generation-orbit" aria-hidden="true">
+                <LoaderCircle className="generation-spinner" size={70} strokeWidth={1} />
+                <Sparkles className="generation-sparkles" size={26} />
+              </div>
+              <div className="generation-working-copy">
+                <strong>AI가 대시보드를 구성하고 있어요</strong>
+                <p>선택한 조건을 바탕으로 화면을 만들고 있습니다.<br />결과 검증이 끝나면 미리보기가 열립니다.</p>
+              </div>
+              <div className="generation-wave" aria-hidden="true">
+                {[30, 52, 38, 68, 48, 78, 58].map((height, i) => (
+                  <i key={i} style={{ height, animationDelay: `${i * 130}ms` }} />
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           <p className="form-error" role="alert">
