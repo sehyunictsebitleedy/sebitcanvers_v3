@@ -4,7 +4,10 @@ import "./usage.css";
 
 const count = z.number().int().nonnegative();
 const quota = z.object({ limit: count, used: count, pending: count, remaining: count, ipLimited: z.boolean() });
-const usageSchema = z.object({ observedAt: z.iso.datetime(), resetAt: z.iso.datetime(), generate: quota, edit: quota });
+const usageSchema = z.union([
+  z.object({ exempt: z.literal(true) }),
+  z.object({ exempt: z.literal(false).default(false), observedAt: z.iso.datetime(), resetAt: z.iso.datetime(), generate: quota, edit: quota }),
+]);
 type Usage = z.infer<typeof usageSchema>;
 
 export function UsageNotice({ kind, pending = false }: { kind: "generate" | "edit"; pending?: boolean }) {
@@ -42,16 +45,17 @@ export function UsageNotice({ kind, pending = false }: { kind: "generate" | "edi
     };
   }, [kind, pending, revision]);
   const label = kind === "generate" ? "AI 생성" : "AI 수정";
-  const selected = usage?.[kind];
+  const selected = usage && !usage.exempt ? usage[kind] : undefined;
   return <section className="usage-notice" aria-label={`${label} 사용량`}>
     <div>
       <p role="status">{error ? "사용량을 확인하지 못했습니다. 남은 횟수를 알 수 없으며 실제 가능 여부는 서버에서 확인합니다."
+        : usage?.exempt ? `마스터 로그인 · ${label} 일일 횟수 제한 없음`
         : selected ? `${label} 오늘 ${selected.remaining}회 남음 / ${selected.limit}회 · 성공 ${selected.used}회 · 처리 중 ${selected.pending}회`
         : "오늘의 AI 사용량을 확인하고 있습니다."}</p>
-      {usage && <p>초기화: {new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(usage.resetAt))} (한국시간)</p>}
+      {usage && !usage.exempt && <p>초기화: {new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(usage.resetAt))} (한국시간)</p>}
       {selected?.ipLimited && <p>현재 네트워크의 일일 보조 한도에 도달했습니다. 개인 잔여 횟수가 있어도 요청이 제한됩니다.</p>}
       {selected?.remaining === 0 && <p>오늘 사용할 수 있는 횟수가 없습니다. 처리 중인 요청이 실패·취소되면 반환될 수 있습니다.</p>}
-      <small>생성과 수정은 별도 한도입니다. 처리 중인 요청은 임시로 반영하며 실패 시 반환됩니다. 표시 후 다른 탭의 요청으로 달라질 수 있습니다.</small>
+      <small>{usage?.exempt ? "테스트용 마스터 권한입니다. AI 호출 비용은 발생하며 분당 요청·동시 실행 제한은 유지됩니다. 로그아웃하거나 세션이 만료되면 일반 한도가 적용됩니다." : "생성과 수정은 별도 한도입니다. 처리 중인 요청은 임시로 반영하며 실패 시 반환됩니다. 표시 후 다른 탭의 요청으로 달라질 수 있습니다."}</small>
     </div>
     <button type="button" className="button secondary" onClick={() => setRevision(value => value + 1)}>사용량 새로고침</button>
   </section>;
