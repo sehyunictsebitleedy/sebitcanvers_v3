@@ -10,7 +10,7 @@ export function tokenUsage(value: unknown): TokenUsage {
   return { input: count(data.input_tokens), output: count(data.output_tokens), total: count(data.total_tokens),
     cached: count(object(data.input_tokens_details).cached_tokens), reasoning: count(object(data.output_tokens_details).reasoning_tokens) };
 }
-export type AiEvent = { requestId: string; kind: "generate" | "edit" | "chat"; phase: "provider" | "request"; attempt: number; ok: boolean; code: string | null; ms: number; tokens?: TokenUsage | null };
+export type AiEvent = { requestId: string; kind: "generate" | "edit"; phase: "provider" | "request"; attempt: number; ok: boolean; code: string | null; ms: number; tokens?: TokenUsage | null };
 export class TelemetryStore {
   private db: DatabaseSync;
   constructor(path: string) {

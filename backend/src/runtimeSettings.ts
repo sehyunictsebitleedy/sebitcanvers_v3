@@ -18,15 +18,12 @@ export function readRuntimeSettings(env: NodeJS.ProcessEnv = process.env) {
     timeout: integer("AI_TIMEOUT_MS", 60000, 120000),
     rateLimit: integer("AI_RATE_LIMIT", 5, 100),
     concurrency: integer("AI_CONCURRENCY", 2, 10),
-    chatRateLimit: integer("AI_CHAT_RATE_LIMIT", 10, 100),
     maintenance: env.AI_MAINTENANCE === "true",
     limits: {
       generate: integer("AI_DAILY_GENERATE", 3, 10000),
       edit: integer("AI_DAILY_EDIT", 10, 10000),
       ipGenerate: integer("AI_DAILY_IP_GENERATE", 50, 100000),
       ipEdit: integer("AI_DAILY_IP_EDIT", 200, 100000),
-      chat: integer("AI_DAILY_CHAT", 50, 10000),
-      ipChat: integer("AI_DAILY_IP_CHAT", 500, 100000),
     },
   };
 }
