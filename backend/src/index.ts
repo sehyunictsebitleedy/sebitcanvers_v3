@@ -14,6 +14,7 @@ createApi({
   timeout: settings.timeout,
   rateLimit: settings.rateLimit,
   concurrency: settings.concurrency,
+  chatRateLimit: settings.chatRateLimit,
   maintenance: settings.maintenance,
   telemetry: new TelemetryStore(settings.telemetryPath),
   usage: new UsageStore(settings.usagePath, settings.limits),
