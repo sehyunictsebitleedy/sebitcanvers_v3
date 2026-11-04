@@ -1,11 +1,11 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './App.tsx'
+import { Entry } from './Entry'
 import { startStorageSession } from './create/storageSession'
 
 void startStorageSession(() => createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <Entry />
   </StrictMode>,
 ))

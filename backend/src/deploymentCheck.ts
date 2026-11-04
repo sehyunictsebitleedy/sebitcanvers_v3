@@ -37,7 +37,7 @@ export function checkDeployment(env: NodeJS.ProcessEnv, root: string, nodeVersio
     return rel === ".." || rel.startsWith("..\\") || rel.startsWith("../") || isAbsolute(rel);
   };
   const canonical: string[] = [];
-  for (const [name, path] of [["AI_USAGE_DB", settings.usagePath], ["AI_TELEMETRY_DB", settings.telemetryPath]]) {
+  for (const [name, path] of [["AI_USAGE_DB", settings.usagePath], ["AI_TELEMETRY_DB", settings.telemetryPath], ["CMS_DB", env.CMS_DB ?? "./data/cms.sqlite"]]) {
     try {
       if (!isAbsolute(path)) throw new Error();
       const parent = realpathSync(dirname(path));
@@ -53,6 +53,6 @@ export function checkDeployment(env: NodeJS.ProcessEnv, root: string, nodeVersio
       add(name, true, "릴리스 밖 DB 경로와 현재 실행 계정의 읽기/쓰기 접근 확인");
     } catch { add(name, false, "릴리스 밖 영속 디렉터리를 준비하고 DB/부모 디렉터리 권한·절대 경로를 확인하세요."); }
   }
-  if (canonical.length === 2) add("SEPARATE_DATABASES", canonical[0] !== canonical[1], "심볼릭 링크를 해석한 두 DB 경로도 달라야 함");
+  if (canonical.length === 3) add("SEPARATE_DATABASES", new Set(canonical).size === 3, "심볼릭 링크를 해석한 세 DB 경로도 달라야 함");
   return checks;
 }

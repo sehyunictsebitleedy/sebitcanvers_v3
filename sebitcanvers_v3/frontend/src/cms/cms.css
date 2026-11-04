@@ -1,0 +1,14 @@
+.cms-shell { max-width: 1000px; margin: 0 auto; padding: 48px 32px; color: #e8edf7; }
+.cms-heading, .cms-toolbar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.cms-heading { justify-content: space-between; margin-bottom: 24px; }
+.cms-heading h1 { margin: 8px 0; }
+.cms-panel { margin-top: 24px; padding: 28px; border: 1px solid #344052; border-radius: 12px; background: #121b2a; }
+.cms-panel h2 { margin: 0 0 16px; font-size: 20px; }
+.cms-panel p, .cms-shell > p { line-height: 1.8; margin-bottom: 16px; color: #b6c4d9; }
+.cms-toolbar { padding: 16px 0; }
+.cms-login { max-width: 480px; }
+.cms-panel label { display: grid; gap: 8px; margin-bottom: 18px; }
+.cms-panel input, .cms-panel select { padding: 12px; color: #f0f4fa; background: #0c1421; border: 1px solid #506079; border-radius: 6px; }
+.cms-message { padding: 16px; border: 1px solid #7183a4; border-radius: 8px; }
+.cms-shell button:disabled { opacity: .5; cursor: not-allowed; }
+.cms-public { min-width: 1280px; }

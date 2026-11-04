@@ -15,7 +15,9 @@ server {
 
     root /srv/sebit/current/sebitcanvers_v3/frontend/dist;
     index index.html;
-    client_max_body_size 512k;
+    # CMS bundles include up to two 2MB images encoded as base64.
+    # AI endpoints keep their stricter application-level limits.
+    client_max_body_size 6m;
     client_body_timeout 15s;
 
     location ~ /\. { deny all; }

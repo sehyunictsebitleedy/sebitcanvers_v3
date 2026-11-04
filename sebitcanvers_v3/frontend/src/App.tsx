@@ -613,6 +613,7 @@ function App() {
           <a href="#info/service">서비스 안내</a>
           <a href="#info/terms">이용약관</a>
           <a href="#info/privacy">개인정보처리방침</a>
+          <a href="/admin">마스터 관리</a>
           <a
             href="http://sebit.co.kr"
             target="_blank"
