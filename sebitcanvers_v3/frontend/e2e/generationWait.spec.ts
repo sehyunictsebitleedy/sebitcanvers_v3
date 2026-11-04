@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 const sample = JSON.parse(readFileSync(new URL("../src/dashboard/sample.json", import.meta.url), "utf8"));
 
-test("elapsed wait, cancellation, retained options and retry ignore late results", async ({ page }) => {
+test("elapsed wait, cancellation, retained options and retry ignore late results", async ({ page }, info) => {
   await page.clock.install();
   let requests = 0;
   let finishFirst!: () => void;
@@ -16,6 +16,10 @@ test("elapsed wait, cancellation, retained options and retry ignore late results
   await page.getByLabel("프로젝트 이름", { exact: true }).fill("대기 검수");
   await page.locator(".create-submit button[type=button]").click();
   await expect.poll(() => requests).toBe(1);
+  await expect(page.getByText("AI가 대시보드를 구성하고 있어요", {exact:true})).toBeVisible();
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page.locator(".generation-spinner")).toHaveCSS("animation-name", "none");
+  await page.locator(".generation-skeleton").screenshot({path: info.outputPath("generation-progress.png")});
   await page.clock.fastForward(61000);
   await expect(page.getByRole("timer")).toContainText("61초");
   await expect(page.getByText(/예상보다 오래 걸리고 있습니다/)).toBeVisible();

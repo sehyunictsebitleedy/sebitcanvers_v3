@@ -671,13 +671,52 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 18px;
 }
-.generation-skeleton div {
-  height: 95px;
+.generation-placeholder,
+.generation-working {
   border: 1px solid #303d51;
   border-radius: 12px;
-  background: #182235;
+  background: #151e2e;
 }
-.generation-skeleton div:last-child {
+.generation-placeholder {
+  padding: 22px;
+}
+.generation-placeholder > span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #c4cde0;
+  font-size: 13px;
+}
+.generation-placeholder svg { color: #ac9aeb; }
+.generation-shimmer {
+  display: block;
+  margin-top: 17px;
+  height: 6px;
+  width: 72%;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #283349 20%, #62568d 50%, #283349 80%);
+  background-size: 200% 100%;
+  animation: generation-shimmer 2.8s linear infinite;
+}
+.generation-working {
   grid-column: 1 / -1;
-  height: 180px;
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 30px;
+  background: radial-gradient(ellipse at 0% 50%, #44377030, transparent 65%), #151e2e;
+}
+.generation-orbit { position: relative; width: 70px; height: 70px; flex-shrink: 0; }
+.generation-spinner { color: #a997f5; animation: generation-spin 3s linear infinite; }
+.generation-sparkles { position: absolute; inset: 22px; color: #d4caff; }
+.generation-working-copy strong { font-size: 18px; color: #edf0fa; }
+.generation-working-copy p { margin: 8px 0 0; font-size: 13px; }
+.generation-wave { display: flex; align-items: center; gap: 6px; margin-left: auto; height: 90px; padding-left: 12px; }
+.generation-wave i { width: 7px; border-radius: 6px; background: linear-gradient(#a38be7, #5278b0); opacity: .65; animation: generation-wave 2.2s ease-in-out infinite; }
+@keyframes generation-spin { to { transform: rotate(360deg); } }
+@keyframes generation-shimmer { to { background-position: -200% 0; } }
+@keyframes generation-wave { 50% { transform: scaleY(.55); opacity: .3; } }
+@media (prefers-reduced-motion: reduce) {
+  .generation-spinner, .generation-shimmer, .generation-wave i { animation: none; }
 }
