@@ -194,7 +194,7 @@ test("image upload, table/progress/notification edits and missing asset Finalize
   await page.getByLabel("알림 문구").fill("검수 완료 알림");
   await page.getByRole("button", { name: "변경 적용", exact: true }).click();
   await tree
-    .getByRole("button", { name: "최근 프로젝트", exact: true })
+    .getByRole("button", { name: "채널별 성과", exact: true })
     .click();
   await page.getByRole("button", { name: "데이터 편집", exact: true }).click();
   await page

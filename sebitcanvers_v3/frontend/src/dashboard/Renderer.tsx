@@ -74,15 +74,18 @@ export function Chart({ component }: { component: ChartComponent }) {
   const low = Math.min(0, ...values);
   const high = Math.max(0, ...values);
   const range = high - low || 1;
+  // Keep narrow charts legible instead of shrinking a full-width SVG into them.
+  // Schema-based sizing also produces the same geometry in static ZIP exports.
+  const plotWidth = Math.max(220, component.layout.columnSpan * 75 - 100);
   const y = (value: number) => 190 - ((value - low) / range) * 155;
   const x = (index: number) =>
-    50 + (index * 560) / Math.max(1, labels.length - 1);
+    50 + (index * plotWidth) / Math.max(1, labels.length - 1);
   const baseline = y(0);
   return (
     <>
       <svg
         className="db-chart"
-        viewBox="0 0 660 240"
+        viewBox={`0 0 ${plotWidth + 100} 240`}
         role="img"
         aria-label={`${component.title}, ${datasets.map((dataset) => `${dataset.name}: ${dataset.data.join(", ")}`).join("; ")}`}
       >
@@ -92,7 +95,7 @@ export function Chart({ component }: { component: ChartComponent }) {
             <g key={step}>
               <line
                 x1="45"
-                x2="630"
+                x2={plotWidth + 70}
                 y1={y(value)}
                 y2={y(value)}
                 className="db-gridline"
@@ -113,7 +116,7 @@ export function Chart({ component }: { component: ChartComponent }) {
             .map((value, i) => `${x(i)},${y(value)}`)
             .join(" ");
           if (chartType === "bar") {
-            const group = 560 / labels.length;
+            const group = plotWidth / labels.length;
             const width = Math.min(42, (group * 0.7) / datasets.length);
             return (
               <g key={dataset.name}>
@@ -163,7 +166,7 @@ export function Chart({ component }: { component: ChartComponent }) {
             key={i}
             x={
               chartType === "bar"
-                ? 50 + ((i + 0.5) * 560) / labels.length
+                ? 50 + ((i + 0.5) * plotWidth) / labels.length
                 : x(i)
             }
             y="220"

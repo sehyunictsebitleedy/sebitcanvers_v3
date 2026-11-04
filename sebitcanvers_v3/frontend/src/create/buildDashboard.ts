@@ -12,12 +12,12 @@ export const accents = {
 };
 export const stylePresets = {
   modern: {
-    background: "#f1f4f9",
+    background: "#f5f6f8",
     surface: "#ffffff",
-    text: "#202e45",
-    muted: "#5c6c83",
-    border: "#dce3ed",
-    radius: 14,
+    text: "#243044",
+    muted: "#667287",
+    border: "#e0e5ec",
+    radius: 12,
   },
   minimal: {
     background: "#fafafa",
@@ -36,12 +36,12 @@ export const stylePresets = {
     radius: 4,
   },
   dark: {
-    background: "#0e1521",
-    surface: "#182333",
+    background: "#101722",
+    surface: "#192230",
     text: "#eef1f8",
     muted: "#a8b5cb",
-    border: "#2c394f",
-    radius: 10,
+    border: "#2d3747",
+    radius: 12,
   },
 };
 export function buildDashboard(
